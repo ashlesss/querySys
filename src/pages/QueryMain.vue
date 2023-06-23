@@ -45,7 +45,7 @@ export default defineComponent ({
         pressed() {
             let url
             if (this.search.match(/RJ\d{8}/) && this.search.length == 10) {
-                url = `/api/record?rjcode=${this.search}`;
+                url = `/api/query/record?rjcode=${this.search}`;
                 console.log(url);
                 this.$axios
                 .get(url)
@@ -57,12 +57,12 @@ export default defineComponent ({
                 .catch(err => console.log(err));
             }
             else if (this.search.match(/RJ\d{6}/) && this.search.length == 8) {
-                url = `/api/record?rjcode=${this.search}`;
+                url = `/api/query/record?rjcode=${this.search}`;
                 console.log(url);
                 this.$axios
                 .get(url)
                 .then(val => {
-                    // console.log(val.data.work[0].work_title);
+                    // console.log(val.data.work[0].tags);
                     this.result = val.data;
                     console.log(this.result);
                 })

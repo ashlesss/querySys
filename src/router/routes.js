@@ -6,11 +6,6 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'QueryMain', component: () => import('pages/QueryMain.vue') },
-      {
-        path: '/QueryMain', 
-        name: 'search',
-        component: () => import('pages/QueryResult.vue')
-      },
     ]
   },
 
