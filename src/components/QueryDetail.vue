@@ -31,7 +31,7 @@ export default {
 
     computed: {
         getImage() {
-            let url = `http://localhost:4000/api/static/img/${this.result.work[0].work_img_dir}`
+            let url = `http://localhost:4000/api/static/img/${this.result.work[0].work_main_img}`
             return url
         },
 

@@ -3,6 +3,8 @@
       <q-header reveal elevated v-bind:class="headerClass">
         <q-toolbar>
           <q-btn dense flat round icon="menu" @click="drawerOpen = !drawerOpen" />
+
+          <q-btn flat size="md" icon="arrow_back_ios" @click="back()" v-if="isNotAtHomePage"/>
   
           <q-toolbar-title>
             ボイス Query system
@@ -57,6 +59,20 @@
                 Query Page
               </q-item-section>
             </q-item>
+
+            <q-item 
+            to="/works"
+            exact
+            clickable 
+            v-ripple>
+              <q-item-section avatar>
+                <q-icon name="widgets" />
+              </q-item-section>
+
+              <q-item-section>
+                Library
+              </q-item-section>
+            </q-item>
             
 
           </q-list>
@@ -85,10 +101,6 @@ export default defineComponent({
     const $q = useQuasar();
   },
 
-  setup() {
-    const $q = useQuasar();
-  },
-
   data() {
     return {
       drawerOpen: ref(false),
@@ -103,8 +115,17 @@ export default defineComponent({
         'bg-primary text-white': !this.isDarkActive,
         'bg-dark text-white': this.isDarkActive
       }
+    },
+
+    isNotAtHomePage() {
+      const path = this.$route.path
+      return path && path !=='/works'
     }
   },
+
+  // created() {
+  //   console.log(this.$route.path);
+  // },
 
   methods: {
     toggleDark() {
@@ -116,6 +137,10 @@ export default defineComponent({
         this.$q.dark.set(false);
         this.isDarkActive = false;
       }
+    },
+
+    back() {
+      this.$router.go(-1)
     }
   }
 })

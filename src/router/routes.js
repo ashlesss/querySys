@@ -6,6 +6,8 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'QueryMain', component: () => import('pages/QueryMain.vue') },
+      { path: 'works', component: () => import('pages/WorksLib.vue') },
+      { path: 'work/:id', component: () => import('pages/WorkDetail.vue')},
     ]
   },
 
@@ -14,6 +16,7 @@ const routes = [
   
   {
     path: '/:catchAll(.*)*',
+    name: 'notfound',
     component: () => import('pages/ErrorNotFound.vue')
   }
 ]

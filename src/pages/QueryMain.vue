@@ -52,7 +52,7 @@ export default defineComponent ({
                 .then(val => {
                     // console.log(val.data.work[0].work_title);
                     this.result = val.data;
-                    console.log(this.result);
+                    // console.log(this.result);
                 })
                 .catch(err => console.log(err));
             }

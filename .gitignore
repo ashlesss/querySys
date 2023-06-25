@@ -30,3 +30,6 @@ yarn-error.log*
 
 # Ignore .env
 .env
+
+# Ignore NSFW progress
+progress/
