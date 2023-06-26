@@ -18,52 +18,87 @@
             </form>
         </div>
 
-        <div>
+        <!-- <div>
             <QueryDetail v-if="result" :result="result" />
+            <WordCard v-if="work" :work="work" class="fit" /> 
+        </div> -->
+
+        <!-- TODO
+        Need redecoration -->
+        <div class="row q-px-sm q-pt-sm q-col-gutter-x-md q-col-gutter-y-lg">
+            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2" v-for="work in works" :key="work.rj_code">
+                <WordCard :work="work" class="fit" /> 
+            </div>
         </div>
     </q-page>
 </template>
 
 <script> 
 import { defineComponent, ref } from 'vue'
-import QueryDetail from '../components/QueryDetail.vue';
+// import QueryDetail from '../components/QueryDetail.vue';
+import WordCard from '../components/WorkCard.vue';
 
 export default defineComponent ({
     name: "QueryMain",
 
     components: {
-        QueryDetail,
+        // QueryDetail,
+        WordCard,
     },
 
     data() {
         return {
             search: "",
-            result: "",
+            // result: "",
+            works: [],
         };
     },
+
+    // Data set refactored to support 
+    // multi-keywords searching in the future
     methods: {
         pressed() {
+            this.works = [];
             let url
             if (this.search.match(/RJ\d{8}/) && this.search.length == 10) {
-                url = `/api/query/record?rjcode=${this.search}`;
-                console.log(url);
+                const params = {
+                    rjcode: this.search
+                }
+                url = `/api/query/record`;
                 this.$axios
-                .get(url)
+                .get(url, { params })
                 .then(val => {
                     // console.log(val.data.work[0].work_title);
-                    this.result = val.data;
+                    // this.result = val.data;
+                    this.works.push({
+                        work_main_img: val.data.work[0].work_main_img,
+                        rj_code: val.data.work[0].rj_code,
+                        work_title: val.data.work[0].work_title,
+                        work_tags: val.data.tags
+
+                    })
                     // console.log(this.result);
                 })
                 .catch(err => console.log(err));
             }
             else if (this.search.match(/RJ\d{6}/) && this.search.length == 8) {
-                url = `/api/query/record?rjcode=${this.search}`;
+                const params = {
+                    rjcode: this.search
+                }
+                url = `/api/query/record`;
                 // console.log(url);
                 this.$axios
-                .get(url)
+                .get(url, { params })
                 .then(val => {
                     // console.log(val.data.work[0].tags);
-                    this.result = val.data;
+                    // this.result = val.data;
+                    this.works.push({
+                        work_main_img: val.data.work[0].work_main_img,
+                        rj_code: val.data.work[0].rj_code,
+                        work_title: val.data.work[0].work_title,
+                        work_tags: val.data.tags
+
+                    })
                     // console.log(this.result);
                 })
                 .catch(err => console.log(err));

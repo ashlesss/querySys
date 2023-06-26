@@ -58,8 +58,12 @@ export default defineComponent({
 
         requestWorks() {
             this.works= []
-            const url = `/api/query/rc?page=${this.currPage}`
-            this.$axios.get(url)
+            // const url = `/api/query/rc?page=${this.currPage}`
+            const url = `/api/query/rc`
+            const params = {
+                page: this.currPage,
+            }
+            this.$axios.get(url, { params })
             .then(val => {
                 // console.log(val.data[0].work[0].rj_code);
                 // console.log(val.data[val.data.length - 1].current_page);

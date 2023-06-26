@@ -120,7 +120,7 @@ export default defineComponent({
 
     isNotAtHomePage() {
       const path = this.$route.path
-      return path && path !=='/works'
+      return path && path !=='/works' && path !=='/'
     }
   },
 
