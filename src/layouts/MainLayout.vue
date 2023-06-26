@@ -79,10 +79,11 @@
         </q-scroll-area>
       </q-drawer>
 
+      
     <q-page-container>
       <!-- <router-view /> -->
       <router-view v-slot="{ Component }">
-        <keep-alive>
+        <keep-alive exclude="WorkDetail">
           <component :is="Component" />
         </keep-alive>
       </router-view>
@@ -92,7 +93,7 @@
 
 <script>
 import { defineComponent, ref } from 'vue';
-import { useQuasar } from 'quasar'
+import { useQuasar } from 'quasar';
 
 export default defineComponent({
   name: 'MainLayout',

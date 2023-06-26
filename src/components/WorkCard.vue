@@ -3,7 +3,7 @@
       <!-- <img :src="getWorkImg"> -->
       <router-link :to="`/work/${this.work.rj_code}`">
         <q-img
-        :src="`http://localhost:4000/api/static/img/${this.work.work_main_img}`"
+        :src="`/api/static/img/${this.work.work_main_img}`"
         :ratio="4/3"
         style="max-width: 560px;">
 

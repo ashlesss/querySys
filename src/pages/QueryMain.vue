@@ -58,13 +58,13 @@ export default defineComponent ({
             }
             else if (this.search.match(/RJ\d{6}/) && this.search.length == 8) {
                 url = `/api/query/record?rjcode=${this.search}`;
-                console.log(url);
+                // console.log(url);
                 this.$axios
                 .get(url)
                 .then(val => {
                     // console.log(val.data.work[0].tags);
                     this.result = val.data;
-                    console.log(this.result);
+                    // console.log(this.result);
                 })
                 .catch(err => console.log(err));
             }

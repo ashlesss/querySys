@@ -4,7 +4,7 @@
             {{ workInfo.work_title }}
         </h5>
         <div>
-            <img :src="`http://localhost:4000/api/static/img/${this.workInfo.work_main_img}`">
+            <img :src="getImgUrl">
         </div>
         <div class="row">
             <q-chip 
@@ -28,13 +28,13 @@ export default {
     props: ["workInfo"],
 
     // created() {
-    //     console.log(this.workInfo.work_tags);
+    //     console.log(this.workInfo);
     // },
 
-    // computed: {
-    //     getImgUrl() {
-    //         return `http://localhost:4000/api/static/img/${this.workInfo.work_main_img}`
-    //     }
-    // }
+    computed: {
+        getImgUrl() {
+            return `/api/static/img/${this.workInfo.work_main_img}`
+        }
+    }
 }
 </script>

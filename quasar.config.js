@@ -93,7 +93,7 @@ module.exports = configure(function (/* ctx */) {
       proxy: {
         '/api': {
           target: 'http://localhost:4000',
-          changeOrigin: true,
+          changeOrigin: false,
         }
       }
     },
