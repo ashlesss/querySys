@@ -1,13 +1,13 @@
 <template>
     <!-- <q-infinite-scroll @load="requestWorks" :offset="250"> -->
-        <div class="row q-px-sm q-col-gutter-x-md q-col-gutter-y-lg">
+        <div class="row q-px-sm q-pt-sm q-col-gutter-x-md q-col-gutter-y-lg">
             <!-- col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2 -->
             <div class="col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2" v-for="work in works" :key="work.rjcode">
                 <WordCard :work="work" class="fit" /> 
             </div>
         </div>
     <!-- </q-infinite-scroll> -->
-    <div class="q-pa-lg flex flex-center">
+    <div class="q-pa-lg flex flex-center ">
         <q-pagination
         v-model="currPage"
         :max="maxPage"
@@ -38,7 +38,6 @@ export default defineComponent({
                 // {rjcode: 'RJ440172'},
             ],
             currPage: Number(this.$route.query.page) || 1,
-            pagination: {currentPage: 1, pageSize: 3, totalCount: 0},
             maxPage: 10,
         }
     },
