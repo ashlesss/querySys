@@ -37,7 +37,7 @@ export default defineComponent({
                 // {rjcode: 'RJ440172'},
                 // {rjcode: 'RJ440172'},
             ],
-            currPage: 1,
+            currPage: Number(this.$route.query.page) || 1,
             pagination: {currentPage: 1, pageSize: 3, totalCount: 0},
             maxPage: 10,
         }
@@ -51,6 +51,10 @@ export default defineComponent({
             this.currPage = pageNumber
             // console.log(pageNumber);
             this.requestWorks()
+
+            this.$router.push({path: this.$route.path, query: {
+                page: this.currPage
+            }})
         },
 
         requestWorks() {
