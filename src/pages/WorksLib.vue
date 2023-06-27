@@ -42,7 +42,7 @@ export default defineComponent({
         }
     },
     // created() {
-    //     console.log(this.currPage);
+    //     // console.log(this.currPage);
     // },
 
     methods: {

@@ -33,3 +33,5 @@ yarn-error.log*
 
 # Ignore NSFW progress
 progress/
+.dev.env
+.prod.env
