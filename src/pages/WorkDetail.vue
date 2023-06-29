@@ -40,8 +40,8 @@ export default defineComponent({
                 }
                 else {
                     this.workInfo.work_tags = val.data.tags
-                    this.workInfo.work_main_img = val.data.work[0].work_main_img
-                    this.workInfo.work_title = val.data.work[0].work_title
+                    this.workInfo.work_main_img = val.data.work.work_main_img
+                    this.workInfo.work_title = val.data.work.work_title
                 }
                 // console.log(val.data);
             })

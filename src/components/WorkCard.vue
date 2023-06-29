@@ -10,16 +10,53 @@
         </q-img>
       </router-link>
 
+      <!-- work title -->
       <div class="q-mx-sm text-h6 text-weight-regular ellipsis-2-lines">
         <router-link :to="`/work/${this.work.rj_code}`" :class="$q.dark.isActive ? 'text-white' : 'text-black'" style="text-decoration:none">
             {{ work.work_title }}
         </router-link>
       </div>
 
-      <div class="q-ml-sm q-mt-sm q-mb-xs text-subtitle1 text-weight-regular ellipsis">
-        TODO:Brand
+      <!-- circle -->
+      <div class="q-ml-sm q-mt-sm q-mb-xs text-subtitle1 text-weight-regular ellipsis text-grey">
+        {{ work.work_circle }}
+      </div>
+      
+      <!-- rating -->
+      <div class="row items-center">
+        <div class="col-auto q-ml-sm">
+          <q-rating
+            v-model="rating"
+            size="sm"
+            :color="userMarked ? 'blue' : 'amber'"
+            icon="star_border"
+            icon-selected="star"
+            icon-half="star_half"
+          />
+        </div>
+
+        <div class="col-auto">
+          <span class="text-weight-medium text-body1 text-red">{{ work.work_rate_average_2dp }}</span>
+          <span class="text-grey"> ({{ work.work_rate_count }})</span>
+        </div>
       </div>
 
+      <!-- DLsite link -->
+      <div class="row items-center">
+        <div class="col-auto">
+          <q-icon name="launch" size="xs" />
+          <a class="text-blue" :href="`https://www.dlsite.com/home/work/=/product_id/${work.rj_code}.html`" rel="noreferrer noopener" target="_blank">DLsite</a>
+        </div>
+      </div>
+
+      <!-- Price, SFW tag, and sales count -->
+      <div>
+        <span class="q-mx-sm text-weight-medium text-h6 text-red">{{ work.work_price }} JPY</span>
+        <span>Sales: {{ work.work_dl_count }}</span>
+        <span v-if="!work.work_nsfw" class="q-mx-sm" style="background: #e6f7d6; color: #56842a">SFW</span>
+      </div>
+
+      <!-- tags -->
       <div class="q-ma-xs">
         <q-chip
         :class="$q.dark.isActive ? '' : 'shadow-2'"
@@ -45,9 +82,20 @@ export default defineComponent({
     setup() {
     const $q = useQuasar();
     },
+    
+    data() {
+      return {
+        rating: 0
+      }
+    },
+
+    mounted() {
+      this.rating = this.work.work_rate_average_2dp
+    }
 
     // created() {
-    //     console.log(this.work.work_tags);
+    //     // console.log(this.work.work_tags);
+    //     console.log(this.work.work_rate_count_detail[5]);
     // },
 })
 </script>
