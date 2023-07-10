@@ -76,6 +76,10 @@ export default defineComponent ({
                         work_title: val.data.work[0].work_title,
                         work_tags: val.data.tags
 
+                        // TODO 
+                        // Expected to get more data from axios in order to keep search result
+                        // consistent with WorkCard in WorkLib page.
+
                     })
                     // console.log(this.result);
                 })
@@ -93,9 +97,9 @@ export default defineComponent ({
                     // console.log(val.data.work[0].tags);
                     // this.result = val.data;
                     this.works.push({
-                        work_main_img: val.data.work[0].work_main_img,
-                        rj_code: val.data.work[0].rj_code,
-                        work_title: val.data.work[0].work_title,
+                        work_main_img: val.data.work.work_main_img,
+                        rj_code: val.data.work.rj_code,
+                        work_title: val.data.work.work_title,
                         work_tags: val.data.tags
 
                     })

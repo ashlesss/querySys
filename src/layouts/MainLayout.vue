@@ -73,6 +73,20 @@
                 Library
               </q-item-section>
             </q-item>
+
+            <q-item 
+            to="/dashboard"
+            exact
+            clickable 
+            v-ripple>
+              <q-item-section avatar>
+                <q-icon name="dashboard" />
+              </q-item-section>
+
+              <q-item-section>
+                Dashboard
+              </q-item-section>
+            </q-item>
             
 
           </q-list>

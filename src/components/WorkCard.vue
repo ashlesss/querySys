@@ -67,6 +67,19 @@
         </q-chip>
       </div>
 
+      <!-- VAs -->
+      <div class="q-mx-xs q-my-sm">
+        <q-chip 
+        v-for="(va, index) in work.work_va"
+        :key=index
+        square size="md" 
+        class="shadow-2" 
+        color="teal" 
+        text-color="white">
+          {{ va.va_name }}
+        </q-chip>
+      </div>
+
     </q-card>
 </template>
 
@@ -79,9 +92,9 @@ export default defineComponent({
 
     props: ["work"],
 
-    setup() {
-    const $q = useQuasar();
-    },
+    // setup() {
+    // const $q = useQuasar();
+    // },
     
     data() {
       return {

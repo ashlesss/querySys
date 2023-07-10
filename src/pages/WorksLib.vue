@@ -35,10 +35,6 @@ export default defineComponent({
         WordCard,
     },
 
-    // created() {
-    //     console.log(this.$route.query.page);
-    // },
-
     data() {
         return {
             works: [],
@@ -49,6 +45,13 @@ export default defineComponent({
     },
     // created() {
     //     // console.log(this.currPage);
+    //     // const sockets  = this.$socket.io('/api', {
+    //     //     // transports: ['websocket'],
+    //     // })
+    //     const sockets = this.$io
+    //     sockets.on("connect", () => {
+    //         console.log("connected");
+    //     })
     // },
 
     methods: {
@@ -77,6 +80,7 @@ export default defineComponent({
 
                 for ( let i = 1; i < val.data.length; i++) {
                     // console.log(val.data[i].work[0].rj_code);
+                    // console.log(val.data[i].va);
                     this.works.push({rj_code: val.data[i].work.rj_code, 
                         work_main_img: val.data[i].work.work_main_img,
                         work_title: val.data[i].work.work_title,
@@ -87,7 +91,8 @@ export default defineComponent({
                         work_nsfw: val.data[i].work.nsfw,
                         work_rate_count: val.data[i].work.rate_count,
                         work_rate_average_2dp: val.data[i].work.rate_average_2dp,
-                        work_rate_count_detail: JSON.parse(val.data[i].work.rate_count_detail)
+                        work_rate_count_detail: JSON.parse(val.data[i].work.rate_count_detail),
+                        work_va: val.data[i].va
                     });
                 }
             })

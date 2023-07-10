@@ -31,8 +31,7 @@ module.exports = configure(function (/* ctx */) {
     // https://v2.quasar.dev/quasar-cli/boot-files
     boot: [
       'axios',
-      
-      
+      'socket.io'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
@@ -94,6 +93,11 @@ module.exports = configure(function (/* ctx */) {
         '/api': {
           target: 'http://localhost:4000',
           changeOrigin: false,
+        },
+
+        '/socket.io': {
+          target: 'ws://localhost:4000',
+          ws: true,
         }
       }
     },

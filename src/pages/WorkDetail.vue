@@ -20,12 +20,7 @@ export default defineComponent({
 
     data() {
         return {
-            workInfo: {
-                // rjcode: this.$route.params.id,
-                work_title: "",
-                work_tags: [],
-                work_main_img: "",
-            },
+            workInfo: {},
         }
     },
 
@@ -42,8 +37,16 @@ export default defineComponent({
                     this.workInfo.work_tags = val.data.tags
                     this.workInfo.work_main_img = val.data.work.work_main_img
                     this.workInfo.work_title = val.data.work.work_title
+                    this.workInfo.circle = val.data.circle.circle_name
+                    this.workInfo.rate_count_detail = JSON.parse(val.data.work.rate_count_detail)
+                    this.workInfo.rate_average_2dp = val.data.work.rate_average_2dp
+                    this.workInfo.dl_count = val.data.work.dl_count
+                    this.workInfo.official_price = val.data.work.official_price
+                    this.workInfo.va = val.data.va
+                    this.workInfo.rate_count = val.data.work.rate_count
+                    this.workInfo.nsfw = val.data.work.nsfw
                 }
-                // console.log(val.data);
+                // console.log(this.workInfo);
             })
             .catch(err => {
                 console.log(err);
