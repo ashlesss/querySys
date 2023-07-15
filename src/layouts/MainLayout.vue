@@ -10,10 +10,13 @@
             ボイス Query system
           </q-toolbar-title>
 
-          
-          <div>
-            <q-btn flat round color="white" icon="dark_mode" @click="toggleDark"/>
-          </div>
+          <q-input dark dense rounded standout v-model="keyword" debounce="500" input-class="text-right" class="q-mr-sm">
+          <template v-slot:append>
+            <q-icon v-if="keyword === ''" name="search" />
+            <q-icon v-else name="clear" class="cursor-pointer" @click="keyword = ''" />
+          </template>
+        </q-input>
+
         </q-toolbar>
       </q-header>
 
@@ -24,57 +27,55 @@
         :mini="miniState"
         @mouseover="miniState = false"
         @mouseout="miniState = true"
+        mini-to-overlay
 
-        :width="200"
+        :width="230"
         :breakpoint="500"
         bordered
-        :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-grey-3'"
+        :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-grey-1'"
       >
         <q-scroll-area class="fit" :horizontal-thumb-style="{ opacity: 0 }">
-          <q-list padding>
-            <q-item 
-            to="/"
-            clickable 
+          <q-list>
+            <q-item
+            clickable
             v-ripple
-            exact>
-              <q-item-section avatar>
-                <q-icon name="info" />
-              </q-item-section>
-
-              <q-item-section>
-                How 2 use
-              </q-item-section>
-            </q-item>
-
-            <q-item 
-            to="/QueryMain"
             exact
-            clickable 
-            v-ripple>
-              <q-item-section avatar>
-                <q-icon name="search" />
+            :to="link.path"
+            active-class="text-deep-purple text-weight-medium"
+            v-for="(link, index) in links"
+            :key="index"
+            @click="miniState = true"
+          >
+            <q-item-section avatar>
+                <q-icon :name="link.icon" />
               </q-item-section>
 
               <q-item-section>
-                Query Page
+                <q-item-label class="text-subtitle1">
+                  {{link.title}}
+                </q-item-label>
               </q-item-section>
             </q-item>
 
-            <q-item 
-            to="/works"
-            exact
-            clickable 
-            v-ripple>
-              <q-item-section avatar>
-                <q-icon name="widgets" />
-              </q-item-section>
+            <q-item
+            clickable
+            v-ripple
+            @click="toggleDark"
+          >
+            <q-item-section avatar>
+              <q-icon :name="isDarkActive ? 'sunny' : 'dark_mode'" />
+            </q-item-section>
 
-              <q-item-section>
-                Library
-              </q-item-section>
+            <q-item-section class="text-subtitle1">
+                Dark mode
+            </q-item-section>
+
             </q-item>
+          </q-list>
 
-            <q-item 
+          <!-- <div class="fixed-bottom">
+            <q-list>
+              <q-item 
             to="/dashboard"
             exact
             clickable 
@@ -87,10 +88,11 @@
                 Dashboard
               </q-item-section>
             </q-item>
-            
+            </q-list>
+          </div> -->
 
-          </q-list>
         </q-scroll-area>
+
       </q-drawer>
 
       
@@ -107,20 +109,43 @@
 
 <script>
 import { defineComponent, ref } from 'vue';
-import { useQuasar } from 'quasar';
 
 export default defineComponent({
   name: 'MainLayout',
 
-  setup() {
-    const $q = useQuasar();
-  },
-
   data() {
     return {
+      keyword: this.$route.query.keyword ? this.$route.query.keyword : '',
       drawerOpen: ref(false),
       miniState: ref(true),
       isDarkActive: false,
+      links: [
+        {
+          title: 'Library',
+          icon: 'widgets',
+          path: '/works'
+        },
+        {
+          title: 'Query Page',
+          icon: 'search',
+          path: '/QueryMain'
+        },
+        {
+          title: 'Dashboard',
+          icon: 'dashboard',
+          path: '/dashboard'
+        }
+      ]
+    }
+  },
+
+  watch: {
+    keyword() {
+      this.$router.push(this.keyword ? `/works?keyword=${encodeURIComponent(this.keyword)}` : `/works`)
+    },
+
+    $route(data) {
+      this.keyword = data.query.keyword
     }
   },
 
@@ -135,12 +160,8 @@ export default defineComponent({
     isNotAtHomePage() {
       const path = this.$route.path
       return path && path !=='/works' && path !=='/'
-    }
+    },
   },
-
-  // created() {
-  //   console.log(this.$route.path);
-  // },
 
   methods: {
     toggleDark() {

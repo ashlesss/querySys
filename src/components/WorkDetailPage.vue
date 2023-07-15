@@ -11,7 +11,7 @@
 
         <!-- Circle -->
         <div class="text-subtitle1 text-weight-regular text-grey">
-            {{workInfo.circle}}
+            {{workInfo.circle_name}}
         </div>
 
         <!-- rating -->
@@ -43,7 +43,7 @@
         <!-- Tags -->
         <div class="row">
             <q-chip 
-            v-for="(tag, index) in workInfo.work_tags"
+            v-for="(tag, index) in workInfo.tags.tags"
             :key=index
             :class="$q.dark.isActive ? '' : 'shadow-2'"
             :color="$q.dark.isActive ? 'grey-9' : 'grey-4'">
@@ -53,7 +53,7 @@
         <!-- VA -->
         <div class="row">
             <q-chip
-            v-for="(va, index) in workInfo.va"
+            v-for="(va, index) in workInfo.vas.vas"
             :key=index
             square size="md" 
             class="shadow-2" 

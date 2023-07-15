@@ -75,6 +75,11 @@ export default {
   // },
 
   mounted() {
+    this.$socket.emit('ON_SCAN_PAGE')
+    this.$socket.on('ON_SCAN_PAGE', res => {
+      this.logs.push(res)
+    })
+
     this.$socket.on('progress', res => {
       this.logs.push(res)
     })

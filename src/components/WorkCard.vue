@@ -19,7 +19,7 @@
 
       <!-- circle -->
       <div class="q-ml-sm q-mt-sm q-mb-xs text-subtitle1 text-weight-regular ellipsis text-grey">
-        {{ work.work_circle }}
+        {{ work.circle_name }}
       </div>
       
       <!-- rating -->
@@ -36,8 +36,8 @@
         </div>
 
         <div class="col-auto">
-          <span class="text-weight-medium text-body1 text-red">{{ work.work_rate_average_2dp }}</span>
-          <span class="text-grey"> ({{ work.work_rate_count }})</span>
+          <span class="text-weight-medium text-body1 text-red">{{ work.rate_average_2dp }}</span>
+          <span class="text-grey"> ({{ work.rate_count }})</span>
         </div>
       </div>
 
@@ -51,9 +51,9 @@
 
       <!-- Price, SFW tag, and sales count -->
       <div>
-        <span class="q-mx-sm text-weight-medium text-h6 text-red">{{ work.work_price }} JPY</span>
-        <span>Sales: {{ work.work_dl_count }}</span>
-        <span v-if="!work.work_nsfw" class="q-mx-sm" style="background: #e6f7d6; color: #56842a">SFW</span>
+        <span class="q-mx-sm text-weight-medium text-h6 text-red">{{ work.official_price }} JPY</span>
+        <span>Sales: {{ work.dl_count }}</span>
+        <span v-if="!work.nsfw" class="q-mx-sm" style="background: #e6f7d6; color: #56842a">SFW</span>
       </div>
 
       <!-- tags -->
@@ -61,7 +61,7 @@
         <q-chip
         :class="$q.dark.isActive ? '' : 'shadow-2'"
         :color="$q.dark.isActive ? 'grey-9' : 'grey-4'"
-        v-for="(tag, index) in work.work_tags"
+        v-for="(tag, index) in work.tags.tags"
         :key=index>
             {{ tag.tag_name}}
         </q-chip>
@@ -70,7 +70,7 @@
       <!-- VAs -->
       <div class="q-mx-xs q-my-sm">
         <q-chip 
-        v-for="(va, index) in work.work_va"
+        v-for="(va, index) in work.vas.vas"
         :key=index
         square size="md" 
         class="shadow-2" 
@@ -85,7 +85,6 @@
 
 <script>
 import { defineComponent, ref } from 'vue';
-import { useQuasar } from 'quasar';
 
 export default defineComponent({
     name: "WorkCard",
@@ -103,12 +102,11 @@ export default defineComponent({
     },
 
     mounted() {
-      this.rating = this.work.work_rate_average_2dp
-    }
+      this.rating = this.work.rate_average_2dp
+    },
 
     // created() {
-    //     // console.log(this.work.work_tags);
-    //     console.log(this.work.work_rate_count_detail[5]);
+    //     console.log(this.work);
     // },
 })
 </script>
