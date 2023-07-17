@@ -14,12 +14,23 @@
             style="font-size: 18px;" >
                 {{ tag.name }}
             </q-chip>
-            <span v-show="totalWorks >= 0">
+            <span v-show="totalWorks">
                 ({{ totalWorks }})
             </span>
         </div>
     </div>
 
+    <!-- Load spinner -->
+    <div class="column justify-center items-center">
+        <q-spinner-dots
+          color="primary"
+          size="3em"
+          v-show="isLoading"
+        />
+        <q-tooltip :offset="[0, 8]">QSpinnerDots</q-tooltip>
+    </div>
+
+    <!-- Works -->
     <!-- <q-infinite-scroll @load="requestWorks" :offset="250"> -->
         <div class="row q-px-sm q-pt-sm q-col-gutter-x-md q-col-gutter-y-lg">
             <!-- col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2 -->
@@ -30,6 +41,7 @@
     <!-- </q-infinite-scroll> -->
     <div class="q-pa-lg flex flex-center ">
         <q-pagination
+        v-show="!isLoading"
         v-model="currPage"
         :max="maxPage"
         :max-pages="6"
@@ -42,9 +54,12 @@
 <script>
 import { defineComponent} from 'vue';
 import WordCard from '../components/WorkCard.vue';
+import NotifyMixin from '../mixins/Notification.js'
 
 export default defineComponent({
     name: "WorksLib",
+
+    mixins: [NotifyMixin],
 
     components: {
         WordCard,
@@ -60,7 +75,8 @@ export default defineComponent({
             isSearch: false,
             searchItems: [],
             tempList: [],
-            tempKeyword: ''
+            tempKeyword: '',
+            isLoading: false,
 
         }
     },
@@ -85,6 +101,7 @@ export default defineComponent({
 
     methods: {
         pageChange(pageNumber) {
+            this.isLoading = true
             this.currPage = pageNumber
             // console.log(pageNumber);
             this.resetPageTitle()
@@ -118,18 +135,26 @@ export default defineComponent({
 
                         const result = val.data
                         this.works = result
-                        
+                        this.isLoading = false
                     }
                     else {
                         this.current_page = 1
                         this.maxPage = 1
                         this.totalWorks = 0
+                        this.isLoading = false
                     }
                 })
                 .catch(err => {
                     this.current_page = 1
                     this.maxPage = 1
                     this.totalWorks = 0
+                    this.isLoading = false
+                    if (err.response) {
+                        this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`)
+                    }
+                    else {
+                        this.showErrNotif(err.message || err)
+                    }
                 })
             }
         },
@@ -138,7 +163,6 @@ export default defineComponent({
             if (this.$route.query.keyword) {
                 this.works= []
                 this.getSearchItem()
-                this.isSearch = true
                 this.pageTitle = this.searchItems.length === 0 ? `Search by ${this.$route.query.keyword}` : `Search by `
                 //this.pageTitle = this.pageTitle + `${this.$route.query.keyword}`
                 const params = {
@@ -158,20 +182,28 @@ export default defineComponent({
 
                         const result = val.data
                         this.works = result
-                        this.$forceUpdate()
-                        
+                        this.isLoading = false
                     }
                     else {
                         // console.log(val.data);
                         this.current_page = 1
                         this.maxPage = 1
                         this.totalWorks = 0
+                        this.isLoading = false
                     }
                 })
                 .catch(err => {
                     this.current_page = 1
                     this.maxPage = 1
                     this.totalWorks = 0
+                    this.isLoading = false
+                    if (err.response) {
+                        console.log(err.response);
+                        this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`)
+                    }
+                    else {
+                        this.showErrNotif(err.message || err)
+                    }
                 })
             }
             else {

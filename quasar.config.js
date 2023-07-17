@@ -31,7 +31,6 @@ module.exports = configure(function (/* ctx */) {
     // https://v2.quasar.dev/quasar-cli/boot-files
     boot: [
       'axios',
-      'socket.io'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
@@ -58,6 +57,9 @@ module.exports = configure(function (/* ctx */) {
       target: {
         browser: [ 'es2019', 'edge88', 'firefox78', 'chrome87', 'safari13.1' ],
         node: 'node16'
+      },
+      env: {
+        SOCKETAPI: 'http://localhost:4000'
       },
 
       vueRouterMode: 'history', // available values: 'hash', 'history'
@@ -96,7 +98,7 @@ module.exports = configure(function (/* ctx */) {
         },
 
         '/socket.io': {
-          target: 'ws://localhost:4000',
+          target: 'http://localhost:4000',
           ws: true,
         }
       }
@@ -117,7 +119,9 @@ module.exports = configure(function (/* ctx */) {
       // directives: [],
 
       // Quasar plugins
-      plugins: []
+      plugins: [
+        'Notify'
+      ]
     },
 
     // animations: 'all', // --- includes all animations

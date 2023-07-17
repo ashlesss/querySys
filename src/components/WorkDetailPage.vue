@@ -1,9 +1,19 @@
 <template>
-    <div class="column justify-center items-center">
+    <WorkImgCover 
+        class="column justify-center items-center q-pa-lg"
+        :rjcode="workInfo.rj_code" 
+        :release="workInfo.regist_date"
+        :img="workInfo.work_main_img" 
+    />
+    <div class="column justify-center items-center q-pa-sm">
+        
         <!-- Work's image -->
-        <div class="q-pt-lg">
-            <img :src="getImgUrl">
-        </div>
+        <!-- <q-img
+            :src="getImgUrl"
+            :ratio="4/3"
+            style="max-width: 560px;"
+            transition="fade"
+        /> -->
 
         <div class="text-h6 text-weight-regular">
             {{ workInfo.work_title }}
@@ -11,7 +21,12 @@
 
         <!-- Circle -->
         <div class="text-subtitle1 text-weight-regular text-grey">
-            {{workInfo.circle_name}}
+            <router-link
+            :to="`/works?keyword=${encodeURIComponent(`$circle:` + workInfo.circle_name + `$`)}`"
+            class="text-grey"
+            style="text-decoration:none">
+                {{workInfo.circle_name}}
+            </router-link>
         </div>
 
         <!-- rating -->
@@ -41,44 +56,51 @@
         </div>
 
         <!-- Tags -->
-        <div class="row">
-            <q-chip 
-            v-for="(tag, index) in workInfo.tags.tags"
-            :key=index
-            :class="$q.dark.isActive ? '' : 'shadow-2'"
-            :color="$q.dark.isActive ? 'grey-9' : 'grey-4'">
-            {{ tag.tag_name }}
+        <div class="row justify-center items-center">
+            <router-link v-for="(tag, index) in workInfo.tags.tags"
+            :key="index"
+            :to="`/works?keyword=${encodeURIComponent(`$tag:` + tag.tag_name + `$`)}`">
+            <q-chip
+                :class="$q.dark.isActive ? '' : 'shadow-2'"
+                :color="$q.dark.isActive ? 'grey-9' : 'grey-4'"
+                >
+                {{ tag.tag_name }}
             </q-chip>
+            </router-link>
         </div>
         <!-- VA -->
         <div class="row">
-            <q-chip
+            <router-link
             v-for="(va, index) in workInfo.vas.vas"
-            :key=index
+            :key="index"
+            :to="`/works?keyword=${encodeURIComponent(`$va:` + va.va_name + `$`)}`">
+            <q-chip 
             square size="md" 
             class="shadow-2" 
             color="teal" 
             text-color="white">
-            {{ va.va_name }}
+                {{ va.va_name }}
             </q-chip>
+            </router-link>
         </div>
         <div style="font-size: 1.1rem;">
             <a :href="`https://www.dlsite.com/maniax/work/=/product_id/${this.$route.params.id}.html`" target="_blank">Support this work on DLsite</a>
         </div>
-        
+
     </div>
 </template>
 
 <script>
+import WorkImgCover from '../components/WorkImgCover.vue'
 
 export default {
     name: 'WorkDetailPage',
 
     props: ["workInfo"],
 
-    // created() {
-    //     console.log(this.workInfo);
-    // },
+    components: {
+        WorkImgCover
+    },
 
     data() {
         return {

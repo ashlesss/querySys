@@ -26,6 +26,8 @@
 </template>
 
 <script>
+import socket from 'socket.io-client'
+const io = socket.io(process.env.SOCKETAPI)
 
 export default {
   setup () {
@@ -59,38 +61,38 @@ export default {
     scan() {
       this.isCompleted = false
       this.logs = []
-      this.$socket.emit("scan", "START_SCAN")
+      io.emit("scan", "START_SCAN")
     },
   },
 
   // created() {
-  //   // this.$socket.on('progress', res => {
+  //   // io.on('progress', res => {
   //   //     console.log(res);
   //   // })
 
-  //   // this.$socket.on('failed', res => {
+  //   // io.on('failed', res => {
   //   //     console.log(res);
   //   // })
     
   // },
 
   mounted() {
-    this.$socket.emit('ON_SCAN_PAGE')
-    this.$socket.on('ON_SCAN_PAGE', res => {
+    io.emit('ON_SCAN_PAGE')
+    io.on('ON_SCAN_PAGE', res => {
       this.logs.push(res)
     })
 
-    this.$socket.on('progress', res => {
+    io.on('progress', res => {
       this.logs.push(res)
     })
 
-    this.$socket.on('failed', res => {
+    io.on('failed', res => {
       // console.log(res);
       this.logs.push(res)
       this.isCompleted = true
     })
 
-    this.$socket.on('scan_completed', res => {
+    io.on('scan_completed', res => {
       this.logs.push(res)
       this.isCompleted = true
     })

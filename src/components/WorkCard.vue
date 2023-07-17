@@ -1,14 +1,12 @@
 <template>
-    <q-card class="mycard" >
-      <!-- <img :src="getWorkImg"> -->
-      <router-link :to="`/work/${this.work.rj_code}`">
-        <q-img
-        :src="`/api/static/img/${this.work.work_main_img}`"
-        :ratio="4/3"
-        style="max-width: 560px;">
+    <q-card>
+      <WorkImgCover 
+        :rjcode="work.rj_code" 
+        :release="work.regist_date"
+        :img="work.work_main_img"
+        class="fit"/>
 
-        </q-img>
-      </router-link>
+      <q-separator />
 
       <!-- work title -->
       <div class="q-mx-sm text-h6 text-weight-regular ellipsis-2-lines">
@@ -19,7 +17,12 @@
 
       <!-- circle -->
       <div class="q-ml-sm q-mt-sm q-mb-xs text-subtitle1 text-weight-regular ellipsis text-grey">
-        {{ work.circle_name }}
+        <router-link
+        :to="`/works?keyword=${encodeURIComponent(`$circle:` + work.circle_name + `$`)}`"
+        class="text-grey"
+        style="text-decoration:none">
+          {{ work.circle_name }}
+        </router-link>
       </div>
       
       <!-- rating -->
@@ -58,26 +61,32 @@
 
       <!-- tags -->
       <div class="q-ma-xs">
-        <q-chip
-        :class="$q.dark.isActive ? '' : 'shadow-2'"
-        :color="$q.dark.isActive ? 'grey-9' : 'grey-4'"
-        v-for="(tag, index) in work.tags.tags"
-        :key=index>
-            {{ tag.tag_name}}
-        </q-chip>
+        <router-link v-for="(tag, index) in work.tags.tags"
+        :key="index"
+        :to="`/works?keyword=${encodeURIComponent(`$tag:` + tag.tag_name + `$`)}`">
+          <q-chip
+            :class="$q.dark.isActive ? '' : 'shadow-2'"
+            :color="$q.dark.isActive ? 'grey-9' : 'grey-4'"
+            >
+              {{ tag.tag_name }}
+          </q-chip>
+        </router-link>
       </div>
 
       <!-- VAs -->
       <div class="q-mx-xs q-my-sm">
-        <q-chip 
+        <router-link
         v-for="(va, index) in work.vas.vas"
-        :key=index
-        square size="md" 
-        class="shadow-2" 
-        color="teal" 
-        text-color="white">
-          {{ va.va_name }}
-        </q-chip>
+        :key="index"
+        :to="`/works?keyword=${encodeURIComponent(`$va:` + va.va_name + `$`)}`">
+          <q-chip 
+          square size="md" 
+          class="shadow-2" 
+          color="teal" 
+          text-color="white">
+            {{ va.va_name }}
+          </q-chip>
+        </router-link>
       </div>
 
     </q-card>
@@ -85,15 +94,16 @@
 
 <script>
 import { defineComponent, ref } from 'vue';
+import WorkImgCover from './WorkImgCover.vue'
 
 export default defineComponent({
     name: "WorkCard",
 
     props: ["work"],
 
-    // setup() {
-    // const $q = useQuasar();
-    // },
+    components: {
+      WorkImgCover
+    },
     
     data() {
       return {
@@ -104,9 +114,5 @@ export default defineComponent({
     mounted() {
       this.rating = this.work.rate_average_2dp
     },
-
-    // created() {
-    //     console.log(this.work);
-    // },
 })
 </script>

@@ -7,10 +7,12 @@
           <q-btn flat size="md" icon="arrow_back_ios" @click="back()" v-if="isNotAtHomePage"/>
   
           <q-toolbar-title>
-            ボイス Query system
+            <router-link to="/" class="text-white" style="text-decoration:none">
+              ボイス
+            </router-link>
           </q-toolbar-title>
 
-          <q-input dark dense rounded standout v-model="keyword" debounce="500" input-class="text-right" class="q-mr-sm">
+          <q-input dark dense rounded standout v-model="keyword" debounce="1000" input-class="text-right" class="q-mr-sm">
           <template v-slot:append>
             <q-icon v-if="keyword === ''" name="search" />
             <q-icon v-else name="clear" class="cursor-pointer" @click="keyword = ''" />
@@ -115,7 +117,8 @@ export default defineComponent({
 
   data() {
     return {
-      keyword: this.$route.query.keyword ? this.$route.query.keyword : '',
+      // keyword: this.$route.query ? this.$route.query.keyword : '',
+      keyword: '',
       drawerOpen: ref(false),
       miniState: ref(true),
       isDarkActive: false,
@@ -141,12 +144,23 @@ export default defineComponent({
 
   watch: {
     keyword() {
-      this.$router.push(this.keyword ? `/works?keyword=${encodeURIComponent(this.keyword)}` : `/works`)
+      if (this.keyword) {
+        this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}`)
+      }
+      else {
+        this.$router.push(this.$route.path)
+        this.keyword = ''
+      }
+      // this.$router.push(this.keyword ? `/works?keyword=${encodeURIComponent(this.keyword)}` : this.$route.path)
     },
 
     $route(data) {
-      this.keyword = data.query.keyword
+      data.query ? this.keyword = data.query.keyword : ''
     }
+  },
+
+  created() {
+    this.$route.query.keyword ? this.keyword = this.$route.query.keyword : ''
   },
 
   computed: {
