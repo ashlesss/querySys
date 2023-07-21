@@ -1,7 +1,8 @@
 <template>
     <div>
         <WorkDetailPage v-if="workInfo.work_title" :workInfo="workInfo"/>
-        <WorkTree :tree="tree"/>
+        <div id="scrollTo"></div>
+        <WorkTree @click="scrollToElement" :tree="tree" @path_down="pathDown" @path_up="pathUp" :goto="goToPath"/>
     </div>
 </template>
 
@@ -10,6 +11,8 @@ import { defineComponent, ref } from 'vue';
 import WorkDetailPage from '../components/WorkDetailPage.vue';
 import WorkTree from '../components/WorkTree.vue'
 import NotifyMixin from '../mixins/Notification.js'
+import { scroll } from 'quasar'
+const { getScrollTarget, setVerticalScrollPosition } = scroll
 
 export default defineComponent({
     name: "WorkDetail",
@@ -29,6 +32,18 @@ export default defineComponent({
         return {
             workInfo: {},
             tree: []
+        }
+    },
+
+    computed: {
+        goToPath() {
+            if (this.$route.query.path) {
+                // console.log(JSON.parse(decodeURIComponent(this.$route.query.path)));
+                return decodeURIComponent(this.$route.query.path)
+            }
+            else {
+                return []
+            }
         }
     },
 
@@ -66,6 +81,24 @@ export default defineComponent({
                     this.showErrNotif(err.message || err)
                 }
             })
+        },
+
+        pathDown(event) {
+            // console.log(event);
+            this.$router.push(`${this.$route.path}?path=${encodeURIComponent(JSON.stringify(event))}#work-tree`)
+        },
+
+        pathUp(event) {
+            // console.log(event);
+            this.$router.push(`${this.$route.path}?path=${encodeURIComponent(JSON.stringify(event))}#work-tree`)
+        },
+
+        scrollToElement() {
+            const element = document.getElementById('scrollTo')
+            const target = getScrollTarget(element)
+            const offset = element.offsetTop
+            const duration = 1000
+            setVerticalScrollPosition(target, offset)
         },
     }
 })

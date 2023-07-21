@@ -20,6 +20,15 @@
         </div>
     </div>
 
+    <div class="row justify-between q-mb-md q-mr-sm q-ml-md">
+        <q-select 
+        rounded 
+        outlined 
+        v-model="sortOption" 
+        :options="options" 
+        label="Sort By"/>
+    </div>
+
     <!-- Load spinner -->
     <div class="column justify-center items-center">
         <q-spinner-dots
@@ -52,7 +61,7 @@
 </template>
 
 <script>
-import { defineComponent} from 'vue';
+import { defineComponent } from 'vue';
 import WordCard from '../components/WorkCard.vue';
 import NotifyMixin from '../mixins/Notification.js'
 
@@ -77,7 +86,68 @@ export default defineComponent({
             tempList: [],
             tempKeyword: '',
             isLoading: false,
-
+            sortOption: {
+                label: '按照发售日期新到老的顺序',
+                order: 'regist_date',
+                sort: 'desc'
+            },
+            options: [
+                {
+                label: '按照发售日期新到老的顺序',
+                order: 'regist_date',
+                sort: 'desc'
+                },
+                {
+                label: '按照发售日期老到新的顺序',
+                order: 'regist_date',
+                sort: 'asc'
+                },
+                {
+                label: '按照售出数量多到少的顺序',
+                order: 'dl_count',
+                sort: 'desc'
+                },
+                {
+                label: '按照价格便宜到贵的顺序',
+                order: 'official_price',
+                sort: 'asc'
+                },
+                {
+                label: '按照价格贵到便宜的顺序',
+                order: 'official_price',
+                sort: 'desc'
+                },
+                {
+                label: '按照评价高到低的顺序',
+                order: 'rate_average_2dp',
+                sort: 'desc'
+                },
+                {
+                label: '按照评论多到少的顺序',
+                order: 'rate_count',
+                sort: 'desc'
+                },
+                {
+                label: '按照RJ号大到小的顺序',
+                order: 'alt_rj_code',
+                sort: 'desc'
+                },
+                {
+                label: '按照RJ号小到大的顺序',
+                order: 'alt_rj_code',
+                sort: 'asc'
+                },
+                {
+                label: '按照全年龄新作优先的顺序',
+                order: 'nsfw',
+                sort: 'asc'
+                },
+                {
+                label: '随机排序',
+                order: 'random',
+                sort: 'desc'
+                }
+            ]
         }
     },
 
@@ -85,7 +155,7 @@ export default defineComponent({
         url() {
             const query = this.$route.query
             if (query.keyword) {
-                return `/api/query/work/${query.keyword}`
+                return `/api/query/search/${encodeURIComponent(query.keyword)}`
             }
             else {
                 return `/api/query/works`
@@ -97,6 +167,17 @@ export default defineComponent({
         url() {
             this.reset()
         },
+
+        sortOption (newSortOptionSetting) {
+            localStorage.sortOption = JSON.stringify(newSortOptionSetting);
+            this.reset();
+        },
+    },
+
+    mounted() {
+        if (localStorage.sortOption) {
+            this.sortOption = JSON.parse(localStorage.sortOption);
+        }
     },
 
     methods: {
@@ -104,113 +185,70 @@ export default defineComponent({
             this.isLoading = true
             this.currPage = pageNumber
             // console.log(pageNumber);
-            this.resetPageTitle()
             if (this.$route.query.keyword) {
-                this.$router.push({path: this.$route.path, query: {
-                    keyword: this.$route.query.keyword,
-                    page: this.currPage
-                }})
+                this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${this.currPage}`)
             }
             else {
-                this.$router.push({path: this.$route.path, query: {
-                page: this.currPage
-                }})
+                this.$router.push(`/works?page=${this.currPage}`)
             }
+            this.resetPageTitle()
         },
 
         requestWorks() {
-            if (!this.$route.query.keyword) {
-                this.works= []
-                // const url = `/api/query/works`
-                const params = {
-                    page: this.currPage,
-                }
-                this.$axios.get(this.url, { params })
-                .then(val => {
-                    if (val.data.pagination.total_works > 0) {
-                        const pagination = val.data.pagination
-                        this.currPage = pagination.current_page
-                        this.maxPage = pagination.max_page
-                        this.totalWorks = pagination.total_works
+            this.works= []
+            const params = {
+                page: this.currPage,
+                order: this.sortOption.order,
+                sort: this.sortOption.sort
+            }
+            // console.log(this.url);
+            this.$axios.get(this.url, { params })
+            .then(val => {
+                if (val.data.pagination.total_works > 0) {
+                    const pagination = val.data.pagination
+                    this.currPage = pagination.current_page
+                    this.maxPage = pagination.max_page
+                    this.totalWorks = pagination.total_works
 
-                        const result = val.data
-                        this.works = result
-                        this.isLoading = false
-                    }
-                    else {
-                        this.current_page = 1
-                        this.maxPage = 1
-                        this.totalWorks = 0
-                        this.isLoading = false
-                    }
-                })
-                .catch(err => {
+                    const result = val.data
+                    this.works = result
+                    this.isLoading = false
+                }
+                else {
                     this.current_page = 1
                     this.maxPage = 1
                     this.totalWorks = 0
                     this.isLoading = false
-                    if (err.response) {
-                        this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`)
-                    }
-                    else {
-                        this.showErrNotif(err.message || err)
-                    }
-                })
-            }
+                }
+            })
+            .catch(err => {
+                this.current_page = 1
+                this.maxPage = 1
+                this.totalWorks = 0
+                this.isLoading = false
+                if (err.response) {
+                    this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`)
+                }
+                else {
+                    this.showErrNotif(err.message || err)
+                }
+            })
         },
 
         resetPageTitle() {
             if (this.$route.query.keyword) {
                 this.works= []
                 this.getSearchItem()
+                // console.log('resetPageTitleUrl: ' + this.url);
                 this.pageTitle = this.searchItems.length === 0 ? `Search by ${this.$route.query.keyword}` : `Search by `
-                //this.pageTitle = this.pageTitle + `${this.$route.query.keyword}`
-                const params = {
-                    page: this.currPage,
-                }
-
-                const url = `/api/query/search/${encodeURIComponent(this.$route.query.keyword)}`
-                // console.log(url);
-                this.$axios.get(url, { params })
-                .then(val => {
-                    if (val.data.pagination.total_works > 0) {
-                        const pagination = val.data.pagination
-                        this.currPage = pagination.current_page
-                        this.maxPage = pagination.max_page
-                        this.totalWorks = pagination.total_works
-                        // console.log(this.totalWorks);
-
-                        const result = val.data
-                        this.works = result
-                        this.isLoading = false
-                    }
-                    else {
-                        // console.log(val.data);
-                        this.current_page = 1
-                        this.maxPage = 1
-                        this.totalWorks = 0
-                        this.isLoading = false
-                    }
-                })
-                .catch(err => {
-                    this.current_page = 1
-                    this.maxPage = 1
-                    this.totalWorks = 0
-                    this.isLoading = false
-                    if (err.response) {
-                        console.log(err.response);
-                        this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`)
-                    }
-                    else {
-                        this.showErrNotif(err.message || err)
-                    }
-                })
+                this.requestWorks()
             }
             else {
                 this.pageTitle = 'All works'
                 this.requestWorks()
                 this.searchItems = []
             }
+            // console.log('resetPageTitle ' + this.currPage);
         },
 
         getSearchItem() {
@@ -235,17 +273,17 @@ export default defineComponent({
 
         reset() {
             // console.log(this.totalWorks);
-            
+            this.isLoading = true
             this.resetPageTitle()
             this.totalWorks = 0
             this.currPage = 1
             this.requestWorks()
-            // console.log(this.totalWorks);
+            // console.log('reseted: ' + this.currPage);
         },
 
         removeSearchTag(name, index) {
             // console.log(name, index);
-            this.searchItems[index].render = false
+            // this.searchItems[index].render = false
             this.searchItems.splice(index, 1)
             // console.log(`searchItems: ${this.searchItems.length}`);
             if (this.searchItems.length) {
@@ -253,17 +291,20 @@ export default defineComponent({
                     this.tempList.push(
                         '$' + this.searchItems[i].name + '$'
                     )
-                }
-                for (let i = 0; i < this.searchItems.length; i++) {
                     this.tempKeyword = this.tempKeyword + this.tempList[i] + ' '
                 }
-                // console.log('tempList: ' + this.tempList.length);
                 // console.log('tempKeyword: ' + this.tempKeyword);
                 // console.log(this.tempList, this.tempKeyword);
-                this.$router.push(`/works?keyword=${this.tempKeyword}`)
+                // console.log(this.tempList);
+                // console.log(this.tempKeyword);
+                this.$router.push(`/works?keyword=${encodeURIComponent(this.tempKeyword)}`)
+                this.tempList = []
+                this.tempKeyword = ''
             }
             else {
                 this.$router.push(`/works`)
+                this.tempList = []
+                this.tempKeyword = ''
             }
         },
     },

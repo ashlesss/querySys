@@ -145,13 +145,24 @@ export default defineComponent({
   watch: {
     keyword() {
       if (this.keyword) {
-        this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}`)
+        if (this.$route.query.page) {
+          this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}&page=${this.$route.query.page}`)
+        }
+        else {
+          this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}`)
+        }
       }
       else {
-        this.$router.push(this.$route.path)
-        this.keyword = ''
+        if (this.$route.query.path) {
+          // console.log('query path exists');
+          this.$router.push(`${this.$route.fullPath}`)
+        }
+        else {
+          // console.log('main page: ' + this.$route.fullPath);
+          this.$router.push(`${this.$route.path}`)
+          this.keyword = ''
+        }
       }
-      // this.$router.push(this.keyword ? `/works?keyword=${encodeURIComponent(this.keyword)}` : this.$route.path)
     },
 
     $route(data) {
