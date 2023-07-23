@@ -20,6 +20,7 @@
         </div>
     </div>
 
+    <!-- Sorting selector -->
     <div class="row justify-between q-mb-md q-mr-sm q-ml-md">
         <q-select 
         rounded 

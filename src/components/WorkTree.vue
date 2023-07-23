@@ -130,12 +130,6 @@ export default{
         catch(err) {
             console.log('No path set on url');
         }
-        
-
-        // const arr = [].concat(this.goto);
-        // console.log('work_tree goto: ' + arr);
-        // // const arr = [].concat(this.goto);
-        // arr.length ? this.path = arr : [];
     },
 
     methods: {
@@ -193,55 +187,82 @@ export default{
             this.path = this.path.slice(0, index+1)
         },
 
+        extractFile(entry, currentPath, result) {
+            const newPath = currentPath ? currentPath + '/' + (entry.title ? entry.title : entry.folderDirName) : (entry.title ? entry.title : entry.folderDirName);
+            
+            if (entry.type === 'folder') {
+
+                for (const child of entry.children) {
+                    this.extractFile(child, newPath, result);
+                }
+            } else if (entry.type === 'text' || entry.type === 'audio' || entry.type === 'image' || entry.type === 'other') {
+                result.push({ title: entry.title, status: 'init' });
+            }
+        },
+
+        async extractFilePaths(entry, currentPath, result, handlePath) {
+            const newPath = currentPath ? currentPath + '/' + (entry.title ? entry.title : entry.folderDirName) : (entry.title ? entry.title : entry.folderDirName);
+            
+            if (entry.type === 'folder') {
+                const newDirectoryHandle = await handlePath.getDirectoryHandle(entry.folderDirName, { create: true })
+                // // console.log(newDirectoryHandle);
+
+                for (const child of entry.children) {
+                    await this.extractFilePaths(child, newPath, result, newDirectoryHandle);
+                }
+            } else if (entry.type === 'text' || entry.type === 'audio' || entry.type === 'image' || entry.type === 'other') {
+                // console.log(`currentPath: ${currentPath}`);
+                // console.log(handlePath);
+                // console.log(entry.hash);
+                try {
+                    const filename = entry.title.replace('~', '')
+                    const fileHandle = await handlePath.getFileHandle(filename, { create: true });
+
+                    const fileUrl = entry.mediaDownloadUrl;
+                    const response = await fetch(fileUrl);
+                    const totalSize = Number(response.headers.get('Content-Length'));
+                    const fileData = await response.arrayBuffer();
+                    this.$emit('file_size', totalSize)
+
+                    // Write the binary data to the file
+                    const writable = await fileHandle.createWritable();
+                    await writable.write(fileData);
+                    await writable.close();
+                    this.$emit('job_done', 'done')
+                    console.log(`${entry.title} completed`);
+                }
+                catch(err) {
+                    console.log(err);
+                }
+                result.push({ title: entry.title, path: newPath, hash: entry.hash , mediaDownloadUrl: entry.mediaDownloadUrl });
+            }
+        },
+
         async downloadFolder(item, itemfolderDirName) {
             // console.log(JSON.stringify(item));
             // console.log(item.folderDirName);
 
-            //Request access to the user's file system
-            const handle = await window.showDirectoryPicker();
+            // Get items from user selected folder.
             const itemArr = []
             itemArr.push(item)
 
-            async function extractFilePaths(entry, currentPath, result, handlePath) {
-                const newPath = currentPath ? currentPath + '/' + (entry.title ? entry.title : entry.folderDirName) : (entry.title ? entry.title : entry.folderDirName);
-                
-                if (entry.type === 'folder') {
-                    const newDirectoryHandle = await handlePath.getDirectoryHandle(entry.folderDirName, { create: true })
-                    // // console.log(newDirectoryHandle);
-
-                    for (const child of entry.children) {
-                        await extractFilePaths(child, newPath, result, newDirectoryHandle);
-                    }
-                } else if (entry.type === 'text' || entry.type === 'audio' || entry.type === 'image' || entry.type === 'other') {
-                    // console.log(`currentPath: ${currentPath}`);
-                    // console.log(handlePath);
-                    // console.log(entry.hash);
-                    try {
-                        const filename = entry.title.replace('~', '')
-                        const fileHandle = await handlePath.getFileHandle(filename, { create: true });
-
-                        const fileUrl = entry.mediaDownloadUrl;
-                        const response = await fetch(fileUrl);
-                        const fileData = await response.arrayBuffer();
-
-                        // Write the binary data to the file
-                        const writable = await fileHandle.createWritable();
-                        await writable.write(fileData);
-                        await writable.close();
-                        console.log(`${entry.title} completed`);
-                    }
-                    catch(err) {
-                        console.log(err);
-                    }
-                    result.push({ title: entry.title, path: newPath, hash: entry.hash , mediaDownloadUrl: entry.mediaDownloadUrl });
-                }
+            // Get files in the selected folder
+            const files = [];
+            for (const entry of itemArr) {
+                this.extractFile(entry, '', files);
             }
+            // console.log('files', files);
+            this.$emit('file_list', files)
+
+
+            // Start download files in folder
+            const handle = await window.showDirectoryPicker();
 
             const fileNamesWithPaths = [];
             for (const entry of itemArr) {
-                await extractFilePaths(entry, '', fileNamesWithPaths, handle);
+                await this.extractFilePaths(entry, '', fileNamesWithPaths, handle);
             }
-            alert(`All files download completed.`)
+            // alert(`All files download completed.`)
             // console.log(fileNamesWithPaths);
             // console.log(itemfolderDirName);
         },
@@ -276,7 +297,7 @@ export default{
                 // console.log(path);
                 this.path.push(path)
             })
-        }
+        },
         
     }
 }

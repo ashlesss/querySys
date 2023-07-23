@@ -1,5 +1,18 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 7/22/2023
+
+1. Add move to top button.
+2. Add download status. (Need to test more for unexpected bugs)
+3. Refactor the `AudioPlayer` store to support `Pinia`.
+4. Clean up stacked codes in `WorkTree.vue`.
+
+### TODO
+1. Add some logic to hide or show the download page button.
+2. Try to get all the files' size at the beginning of the download process.
+3. Make download page a component and use store to save the download data so that it can be open and hide by `MainLayout`.
+4. **`downloadFile` in `WorkTree.vue` needs to refactor since the download page is added. (Urgent)**
+
 ## 7/21/2023
 
 1. Encode all strings on queries to URI format.
@@ -13,7 +26,7 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 
 ### TODO 
 1. Limit user from downloading file and folder on unsupported platform.(In-progress)
-2. Add download status.(long-term)
+2. ~~Add download status.(long-term)~~(Completed)
 ## 7/18/2023
 
 1. Improve loading spinner stability.

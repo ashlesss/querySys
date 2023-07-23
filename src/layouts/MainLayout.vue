@@ -104,6 +104,13 @@
         <keep-alive exclude="WorkDetail">
           <component :is="Component" />
         </keep-alive>
+        <q-page-scroller position="bottom-right" :scroll-offset="150" :offset="[18, 18]">
+          <q-btn fab icon="keyboard_arrow_up" color="accent" />
+        </q-page-scroller>
+        
+        <q-page-sticky position="bottom-right" :offset="[18, 90]">
+          <q-btn fab color="accent" icon="cloud_download"/>
+        </q-page-sticky>
       </router-view>
     </q-page-container>
   </q-layout>
@@ -202,7 +209,7 @@ export default defineComponent({
 
     back() {
       this.$router.go(-1)
-    }
+    },
   }
 })
 </script>
