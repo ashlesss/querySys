@@ -58,6 +58,7 @@
         <!-- Tags -->
         <div class="row justify-center items-center">
             <router-link v-for="(tag, index) in workInfo.tags.tags"
+            v-show="tag.tag_name"
             :key="index"
             :to="`/works?keyword=${encodeURIComponent(`$tag:` + tag.tag_name + `$`)}`">
             <q-chip

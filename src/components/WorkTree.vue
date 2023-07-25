@@ -44,7 +44,7 @@
                     transition-hide="jump-up"
                 >
                     <q-list separator>
-                        <q-item clickable @click="downloadFile(item)">
+                        <q-item clickable @click="download(item)">
                             Download File
                         </q-item>
                     </q-list>
@@ -74,6 +74,9 @@
 
 <script>
 
+import { mapState, mapActions } from 'pinia'
+import { useDownloadCardStore } from '../stores/downloadCard'
+
 export default{
     name: 'WorkTree',
 
@@ -84,13 +87,9 @@ export default{
             path: [],
             userPath: [],
             userAgent: '',
-            userPlatform: ''
+            userPlatform: '',
         }
     },
-
-    // created() {
-        
-    // },
 
     computed: {
         fatherFolder() {
@@ -106,6 +105,12 @@ export default{
             }
             
         },
+
+        ...mapState(useDownloadCardStore, [
+            'fileListStore',
+            'isCalculatingSizeStore',
+            'doneListStore',
+        ])
     },
 
     watch: {
@@ -133,6 +138,19 @@ export default{
     },
 
     methods: {
+        ...mapActions(useDownloadCardStore, [
+            'CAL_FILE_SIZE',
+            'SET_IS_CAL_SIZE_FALSE',
+            'GET_CURR_JOB_INDEX',
+            'GET_DONE_FILES',
+            'PROGRESS_VALUE',
+            'DOWNLOAD_COMPLETED',
+            'RESET',
+            'GET_REAL_TIME_SIZE',
+            'CLOSE_DOWNLOAD_CARD',
+            'GET_FILES'
+        ]),
+
         getUserPlatform() {
             if (this.userAgent.includes('Win')) {
                 this.userPlatform = 'Windows'
@@ -179,8 +197,10 @@ export default{
             const url = file.mediaStreamUrl ? `${file.mediaStreamUrl}` : `/api/media/stream${file.hash}`
             const link = document.createElement('a');
             link.href = url;
+            link.setAttribute('download', file.title)
             link.target="_blank";
             link.click();
+
         },
 
         onClickBreadcrumb (index) {
@@ -196,7 +216,7 @@ export default{
                     this.extractFile(child, newPath, result);
                 }
             } else if (entry.type === 'text' || entry.type === 'audio' || entry.type === 'image' || entry.type === 'other') {
-                result.push({ title: entry.title, status: 'init' });
+                result.push({ title: entry.title, mediaDownloadUrl: entry.mediaDownloadUrl });
             }
         },
 
@@ -210,7 +230,8 @@ export default{
                 for (const child of entry.children) {
                     await this.extractFilePaths(child, newPath, result, newDirectoryHandle);
                 }
-            } else if (entry.type === 'text' || entry.type === 'audio' || entry.type === 'image' || entry.type === 'other') {
+            } 
+            else if (entry.type === 'text' || entry.type === 'audio' || entry.type === 'image' || entry.type === 'other') {
                 // console.log(`currentPath: ${currentPath}`);
                 // console.log(handlePath);
                 // console.log(entry.hash);
@@ -219,76 +240,110 @@ export default{
                     const fileHandle = await handlePath.getFileHandle(filename, { create: true });
 
                     const fileUrl = entry.mediaDownloadUrl;
-                    const response = await fetch(fileUrl);
-                    const totalSize = Number(response.headers.get('Content-Length'));
-                    const fileData = await response.arrayBuffer();
-                    this.$emit('file_size', totalSize)
 
-                    // Write the binary data to the file
-                    const writable = await fileHandle.createWritable();
-                    await writable.write(fileData);
-                    await writable.close();
-                    this.$emit('job_done', 'done')
+                    const currentJob = result.length
+                    // this.$emit('current_job', currentJob)
+                    this.GET_CURR_JOB_INDEX(currentJob)
+
+
+                    await this.downloadAndSaveFile(fileUrl, fileHandle, entry.title)
+
+                    // this.$emit('job_done', 'done')
+                    this.GET_DONE_FILES('done')
+                    this.PROGRESS_VALUE()
+                    if (this.doneListStore.length === this.fileListStore.length) {
+                        this.DOWNLOAD_COMPLETED()
+                    }
                     console.log(`${entry.title} completed`);
                 }
                 catch(err) {
-                    console.log(err);
+                    console.log(`ERR: ${entry.title}`);
                 }
                 result.push({ title: entry.title, path: newPath, hash: entry.hash , mediaDownloadUrl: entry.mediaDownloadUrl });
             }
         },
 
+        async downloadAndSaveFile(url, fileHandle, fileName) {
+            try {
+
+                const header = {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: header
+                });
+                let downloaded = 0;
+
+                if (response.ok) {
+                    // Create a writable stream to save the file
+                    const writableStream = await fileHandle.createWritable();
+                    // const writableStream = await createWritable();
+
+                    // Create a ReadableStream from the response body
+                    const reader = response.body.getReader();
+
+                    // Start reading the response stream and write the chunks to the file
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break
+                        
+                        downloaded += value.length;
+                        // this.$emit('progress', downloaded)
+                        this.GET_REAL_TIME_SIZE(downloaded)
+                        // Write the chunk to the file
+                        await writableStream.write(value);
+                    }
+
+                    // Close the writable stream
+                    await writableStream.close();
+                }
+                else {
+                    await retryFetching(url, fileHandle, fileName)
+                }
+            }
+            catch(err) {
+                console.log(`ERR: ${fileName}, URL: ${url}, err: ${err}`);
+            }
+        },
+
         async downloadFolder(item, itemfolderDirName) {
-            // console.log(JSON.stringify(item));
-            // console.log(item.folderDirName);
 
             // Get items from user selected folder.
+            this.RESET()
             const itemArr = []
             itemArr.push(item)
 
-            // Get files in the selected folder
-            const files = [];
-            for (const entry of itemArr) {
-                this.extractFile(entry, '', files);
-            }
-            // console.log('files', files);
-            this.$emit('file_list', files)
-
-
             // Start download files in folder
-            const handle = await window.showDirectoryPicker();
-
-            const fileNamesWithPaths = [];
-            for (const entry of itemArr) {
-                await this.extractFilePaths(entry, '', fileNamesWithPaths, handle);
-            }
-            // alert(`All files download completed.`)
-            // console.log(fileNamesWithPaths);
-            // console.log(itemfolderDirName);
-        },
-
-        async downloadFile(item) {
-            const handle = await window.showDirectoryPicker();
-            // console.log(item);
-
             try {
-                // Need to check more webAPI restricted character.
-                const filename = item.title.replace('~', '')
-                const fileHandle = await handle.getFileHandle(filename, { create: true });
+                const handle = await window.showDirectoryPicker()
+                const handler = await handle.getDirectoryHandle(this.$route.params.id, {create: true})
 
-                const fileUrl = item.mediaDownloadUrl;
-                const response = await fetch(fileUrl);
-                const fileData = await response.arrayBuffer();
+                const files = [];
+                for (const entry of itemArr) {
+                    this.extractFile(entry, '', files);
+                }
+                // console.log('files', files);
+                // this.$emit('file_list', files)
+                this.GET_FILES(files)
 
-                // Write the binary data to the file
-                const writable = await fileHandle.createWritable();
-                await writable.write(fileData);
-                await writable.close();
-                console.log(`${item.title} completed`);
-                alert(`${item.title} download completed.`)
+                await this.getFileSize(files)
+
+                const fileNamesWithPaths = [];
+                for (const entry of itemArr) {
+                    await this.extractFilePaths(entry, '', fileNamesWithPaths, handler);
+                }
+                
             }
             catch(err) {
-                console.log(err);
+                if (err instanceof DOMException) {
+                    console.log(err);
+                    // this.$emit('DOMException', true)
+                    this.CLOSE_DOWNLOAD_CARD()
+                }
+                else {
+                    console.log(err);
+                }
             }
         },
 
@@ -298,6 +353,64 @@ export default{
                 this.path.push(path)
             })
         },
+
+        async getFileSize(files) {
+            for (let i = 0; i < files.length; i++) {
+                try {
+                    const fileUrl = files[i].mediaDownloadUrl;
+                    const response = await fetch(fileUrl, {
+                        method: 'HEAD'
+                    })
+                    const contentLength = response.headers.get('Content-Length');
+                    // console.log(contentLength);
+                    this.CAL_FILE_SIZE(contentLength)
+                    if (i === files.length - 1) {
+                        this.SET_IS_CAL_SIZE_FALSE()
+                    }
+                }
+                catch(err) {
+                    console.log(err);
+                }
+            }
+        },
+
+        async retryFetching(url, fileHandle, fileName) {
+            try {
+                console.log('Previous fetch failed, retrying.');
+                const response = await fetch(url);
+                let downloaded = 0;
+
+                if (response.ok) {
+                    // Create a writable stream to save the file
+                    const writableStream = await fileHandle.createWritable();
+                    // const writableStream = await createWritable();
+
+                    // Create a ReadableStream from the response body
+                    const reader = response.body.getReader();
+
+                    // Start reading the response stream and write the chunks to the file
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break
+                        
+                        downloaded += value.length;
+                        // this.$emit('progress', downloaded)
+                        this.GET_REAL_TIME_SIZE(downloaded)
+                        // Write the chunk to the file
+                        await writableStream.write(value);
+                    }
+
+                    // Close the writable stream
+                    await writableStream.close();
+                }
+                else {
+                    throw Error(`Can't get file on retry, file: ${fileName}`)
+                }
+            }
+            catch(err) {
+                console.log(`ERR: ${fileName}, URL: ${url}, err: ${err}`);
+            }
+        }
         
     }
 }

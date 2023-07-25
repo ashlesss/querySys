@@ -65,18 +65,16 @@ export default {
     },
   },
 
-  // created() {
-  //   // io.on('progress', res => {
-  //   //     console.log(res);
-  //   // })
-
-  //   // io.on('failed', res => {
-  //   //     console.log(res);
-  //   // })
-    
-  // },
+  watch: {
+    $route(data) {
+      if (data.path.match(/dashboard/)) {
+        document.title = 'DashBoard';
+      }
+    }
+  },
 
   mounted() {
+    document.title = 'DashBoard'
     io.emit('ON_SCAN_PAGE')
     io.on('ON_SCAN_PAGE', res => {
       this.logs.push(res)

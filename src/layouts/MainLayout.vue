@@ -4,7 +4,7 @@
         <q-toolbar>
           <q-btn dense flat round icon="menu" @click="drawerOpen = !drawerOpen" />
 
-          <q-btn flat size="md" icon="arrow_back_ios" @click="back()" v-if="isNotAtHomePage"/>
+          <q-btn flat size="md" icon="arrow_back_ios" @click="back(this.$route.path)" v-if="isNotAtHomePage"/>
   
           <q-toolbar-title>
             <router-link to="/" class="text-white" style="text-decoration:none">
@@ -20,6 +20,7 @@
         </q-input>
 
         </q-toolbar>
+
       </q-header>
 
     <q-drawer
@@ -97,6 +98,8 @@
 
       </q-drawer>
 
+      <DownloadCard />
+
       
     <q-page-container>
       <!-- <router-view /> -->
@@ -109,7 +112,7 @@
         </q-page-scroller>
         
         <q-page-sticky position="bottom-right" :offset="[18, 90]">
-          <q-btn fab color="accent" icon="cloud_download"/>
+          <q-btn fab v-show="fileListStore.length" color="accent" icon="cloud_download" @click="showDownloadPage"/>
         </q-page-sticky>
       </router-view>
     </q-page-container>
@@ -118,9 +121,16 @@
 
 <script>
 import { defineComponent, ref } from 'vue';
+import { mapState, mapActions } from 'pinia'
+import { useDownloadCardStore } from '../stores/downloadCard'
+import DownloadCard from '../components/DownloadCard.vue'
 
 export default defineComponent({
   name: 'MainLayout',
+
+  components: {
+    DownloadCard
+  },
 
   data() {
     return {
@@ -145,7 +155,7 @@ export default defineComponent({
           icon: 'dashboard',
           path: '/dashboard'
         }
-      ]
+      ],
     }
   },
 
@@ -166,8 +176,15 @@ export default defineComponent({
         }
         else {
           // console.log('main page: ' + this.$route.fullPath);
-          this.$router.push(`${this.$route.path}`)
-          this.keyword = ''
+          if (this.$route.query.page) {
+            this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
+            this.keyword = ''
+          }
+          else {
+            this.$router.push(`${this.$route.path}`)
+            this.keyword = ''
+          }
+          
         }
       }
     },
@@ -193,6 +210,11 @@ export default defineComponent({
       const path = this.$route.path
       return path && path !=='/works' && path !=='/'
     },
+
+    ...mapState(useDownloadCardStore, [
+      'seamlessStore',
+      'fileListStore'
+    ])
   },
 
   methods: {
@@ -207,9 +229,25 @@ export default defineComponent({
       }
     },
 
-    back() {
+    back(path) {
+      // console.log(path);
+      // if (path.match(/work/)) {
+      //   this.$router.push('/works')
+      // }
+      // else {
+      //   this.$router.go(-1)
+      // }
       this.$router.go(-1)
     },
+
+    ...mapActions(useDownloadCardStore, [
+      'SHOW_DOWNLOAD_CARD'
+    ]),
+
+    showDownloadPage() {
+      this.SHOW_DOWNLOAD_CARD()
+      console.log(this.seamlessStore);
+    }
   }
 })
 </script>

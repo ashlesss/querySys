@@ -62,6 +62,7 @@
       <!-- tags -->
       <div class="q-ma-xs">
         <router-link v-for="(tag, index) in work.tags.tags"
+        v-show="tag.tag_name"
         :key="index"
         :to="`/works?keyword=${encodeURIComponent(`$tag:` + tag.tag_name + `$`)}`">
           <q-chip

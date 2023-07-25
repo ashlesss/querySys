@@ -173,19 +173,24 @@ export default defineComponent({
             localStorage.sortOption = JSON.stringify(newSortOptionSetting);
             this.reset();
         },
+
+        $route(data) {
+            document.title = 'querysys'
+        }
     },
 
     mounted() {
         if (localStorage.sortOption) {
             this.sortOption = JSON.parse(localStorage.sortOption);
         }
+        
+        document.title = 'querysys'
     },
 
     methods: {
         pageChange(pageNumber) {
             this.isLoading = true
             this.currPage = pageNumber
-            // console.log(pageNumber);
             if (this.$route.query.keyword) {
                 this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${this.currPage}`)
             }

@@ -1,5 +1,21 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 7/24/2023
+
+1. Download card is now a global element, the download can still continue as long as the user is not refreshing the page.
+2. Handle works don't have tags.
+3. Add page tag name.
+4. Fix change page, page number not shown on URL.
+
+### TODO
+1. Handle back to previous page behavior.
+2. Make keyword save to `store` so that it can be use globally and doesn't depend on query.
+
+## 7/23/2023
+
+1. Completed `7/22/2023 TODO` 1, 2, 3 and 4.
+2. Download is now can handle when user cancel the download.
+
 ## 7/22/2023
 
 1. Add move to top button.
@@ -8,10 +24,10 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 4. Clean up stacked codes in `WorkTree.vue`.
 
 ### TODO
-1. Add some logic to hide or show the download page button.
-2. Try to get all the files' size at the beginning of the download process.
-3. Make download page a component and use store to save the download data so that it can be open and hide by `MainLayout`.
-4. **`downloadFile` in `WorkTree.vue` needs to refactor since the download page is added. (Urgent)**
+1. ~~Add some logic to hide or show the download page button.~~(Completed)
+2. ~~Try to get all the files' size at the beginning of the download process.~~(Completed)
+3. ~~Make download page a component and use store to save the download data so that it can be open and hide by `MainLayout`.~~(Completed)
+4. ~~**`downloadFile` in `WorkTree.vue` needs to refactor since the download page is added. (Urgent)**~~(Completed)
 
 ## 7/21/2023
 
