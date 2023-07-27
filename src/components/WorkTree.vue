@@ -117,7 +117,7 @@ export default{
         path() {
             // console.log(this.path);
             this.$emit('path_up', this.path)
-        }
+        },
     },
 
     mounted() {

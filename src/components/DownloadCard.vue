@@ -30,28 +30,29 @@
                         </div>
                     </q-item-section>
                 </q-item>
-
             </q-card-section>
 
             <q-separator />
-            <q-list separator >
+            
+            <q-list separator style="max-height: 50vh" class="scroll">
                 <q-item v-for="(file, index) in fileListStore" :key="index">
                     <q-item-section>
                         <q-item-label lines="2">
                             {{ file.title }}
                         </q-item-label>
-                        <!-- <q-space /> -->
+
                         <q-item-label v-if="fileSizeListStore[index]" caption lines="1">
                             <span v-show="realTimeSizeDoneStore[index]">{{ realTimeSizeDoneStore[index] }} / </span>
                             {{ fileSizeListStore[index] }} 
                         </q-item-label>
                     </q-item-section>
-                    <!-- <q-space /> -->
+
                     <q-item-section avatar v-if="doneListStore[index] ==='done'">
                         <q-icon color="green" name="done" />
                     </q-item-section>
                 </q-item>
             </q-list>
+            
         </q-card>
         </q-dialog>
     </div>

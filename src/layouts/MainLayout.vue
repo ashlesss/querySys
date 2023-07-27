@@ -135,7 +135,7 @@ export default defineComponent({
   data() {
     return {
       // keyword: this.$route.query ? this.$route.query.keyword : '',
-      keyword: '',
+      keyword: this.$route.query.keyword || '',
       drawerOpen: ref(false),
       miniState: ref(true),
       isDarkActive: false,
@@ -190,7 +190,12 @@ export default defineComponent({
     },
 
     $route(data) {
-      data.query ? this.keyword = data.query.keyword : ''
+      if (data.query.keyword) {
+        this.keyword = data.query.keyword
+      }
+      else {
+        this.keyword = ''
+      }
     }
   },
 
@@ -214,7 +219,7 @@ export default defineComponent({
     ...mapState(useDownloadCardStore, [
       'seamlessStore',
       'fileListStore'
-    ])
+    ]),
   },
 
   methods: {
@@ -231,12 +236,6 @@ export default defineComponent({
 
     back(path) {
       // console.log(path);
-      // if (path.match(/work/)) {
-      //   this.$router.push('/works')
-      // }
-      // else {
-      //   this.$router.go(-1)
-      // }
       this.$router.go(-1)
     },
 
@@ -247,6 +246,20 @@ export default defineComponent({
     showDownloadPage() {
       this.SHOW_DOWNLOAD_CARD()
       console.log(this.seamlessStore);
+    },
+
+    changeKeywordPage() {
+      if (this.keyword) {
+        if (this.$route.query.page) {
+          this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}&page=${this.$route.query.page}`)
+        }
+        else {
+          this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}`)
+        }
+      }
+      else {
+        this.$router.push(`/works`)
+      }
     }
   }
 })

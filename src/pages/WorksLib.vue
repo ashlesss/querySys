@@ -58,6 +58,7 @@
         direction-links
         @update:model-value="pageChange($event)"
         />
+        <!-- @update:model-value="pageChange($event)" -->
     </div>
 </template>
 
@@ -82,7 +83,6 @@ export default defineComponent({
             maxPage: [],
             totalWorks: [],
             pageTitle: '',
-            isSearch: false,
             searchItems: [],
             tempList: [],
             tempKeyword: '',
@@ -175,8 +175,25 @@ export default defineComponent({
         },
 
         $route(data) {
-            document.title = 'querysys'
-        }
+            // document.title = 'querysys'
+            if (data.query.keyword) {
+                document.title = 'Search for ' + this.$route.query.keyword + (this.$route.query.page ? ' On page ' + this.$route.query.page : '')
+            }
+            else {
+                document.title = 'querysys'
+            }
+
+            if (data.query.page) {
+                this.isLoading = true
+                this.currPage = data.query.page
+                this.resetPageTitle()
+            }
+            else {
+                this.isLoading = true
+                this.currPage = 1
+                this.resetPageTitle()
+            }
+        },
     },
 
     mounted() {
@@ -184,7 +201,12 @@ export default defineComponent({
             this.sortOption = JSON.parse(localStorage.sortOption);
         }
         
-        document.title = 'querysys'
+        if (this.$route.query.keyword) {
+            document.title = 'Search for ' + this.$route.query.keyword + 'On page ' + this.$route.query.page
+        }
+        else {
+            document.title = 'querysys'
+        }
     },
 
     methods: {
@@ -210,9 +232,19 @@ export default defineComponent({
             // console.log(this.url);
             this.$axios.get(this.url, { params })
             .then(val => {
-                if (val.data.pagination.total_works > 0) {
+                if (val.data.pagination.total_works > 0 && this.currPage <= val.data.pagination.max_page) {
                     const pagination = val.data.pagination
                     this.currPage = pagination.current_page
+                    this.maxPage = pagination.max_page
+                    this.totalWorks = pagination.total_works
+
+                    const result = val.data
+                    this.works = result
+                    this.isLoading = false
+                }
+                else if (val.data.pagination.total_works > 0 && this.currPage > val.data.pagination.max_page) {
+                    const pagination = val.data.pagination
+                    this.currPage = pagination.max_page
                     this.maxPage = pagination.max_page
                     this.totalWorks = pagination.total_works
 

@@ -1,5 +1,16 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 7/27/2023
+
+1. Handle back when user click on back button on browser.
+
+### TODO
+1. Need to handle `WorkTree` back action.
+
+## 7/26/2023
+
+1. Adjust download page handling scroll.
+
 ## 7/24/2023
 
 1. Download card is now a global element, the download can still continue as long as the user is not refreshing the page.
@@ -8,8 +19,8 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 4. Fix change page, page number not shown on URL.
 
 ### TODO
-1. Handle back to previous page behavior.
-2. Make keyword save to `store` so that it can be use globally and doesn't depend on query.
+1. ~~Handle back to previous page behavior.~~(Partial completed)
+2. ~~Make keyword save to `store` so that it can be use globally and doesn't depend on query.~~(Cancelled)
 
 ## 7/23/2023
 

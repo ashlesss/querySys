@@ -60,7 +60,7 @@ export default defineComponent({
         userCancel() {
             this.USER_CANCEL()
             this.userCancel = false
-        }
+        },
     },
 
     computed: {
