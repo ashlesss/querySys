@@ -78,7 +78,7 @@ export const useDownloadCardStore = defineStore('downloadcard', {
           this.fileSizeListStore.push((fileSizeInBytes / 1048576).toFixed(2).toString() + ' MB')
       }
       else {
-          this.fileSizeListStore.push((fileSizeInBytes / 1073741824).toFixed(2).toString() + ' MB')
+          this.fileSizeListStore.push((fileSizeInBytes / 1073741824).toFixed(2).toString() + ' GB')
       }
     },
 

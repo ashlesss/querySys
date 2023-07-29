@@ -31,11 +31,11 @@
           <q-rating
             v-model="rating"
             size="sm"
-            :color="userMarked ? 'blue' : 'amber'"
             icon="star_border"
             icon-selected="star"
             icon-half="star_half"
           />
+          <!-- :color="userMarked ? 'blue' : 'amber'" -->
         </div>
 
         <div class="col-auto">

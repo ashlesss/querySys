@@ -1,5 +1,12 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 7/28/2023
+
+1. Add player.
+
+### TODO 
+1. Add player bar when player card is minimized.
+
 ## 7/27/2023
 
 1. Handle back when user click on back button on browser.
@@ -68,7 +75,7 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 5. Make compatible with mobile browsing.
 ### TODO
 1. ~~Add sorting options on main page.~~(Completed)
-2. Add audio player.
+2. ~~Add audio player.~~(Completed)
 3. Add multi-language support.(Delayed)
 4. Add random play option.
 

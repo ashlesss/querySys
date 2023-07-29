@@ -80,7 +80,7 @@ export default defineComponent({
         return {
             works: [],
             currPage: Number(this.$route.query.page) || 1,
-            maxPage: [],
+            maxPage: 1,
             totalWorks: [],
             pageTitle: '',
             searchItems: [],
@@ -185,7 +185,7 @@ export default defineComponent({
 
             if (data.query.page) {
                 this.isLoading = true
-                this.currPage = data.query.page
+                this.currPage = Number(data.query.page)
                 this.resetPageTitle()
             }
             else {

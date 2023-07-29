@@ -17,7 +17,9 @@
                 v-ripple
                 v-for="(item, index) in fatherFolder"
                 :key="index"
-                @click="onClickIten(item)"
+                :active="item.type === 'audio' && currentPlayingFile.hash === item.hash"
+                active-class="text-white bg-teal"
+                @click="onClickItem(item)"
                 class="non-selectable"
                 >
                 <q-item-section avatar>
@@ -25,8 +27,8 @@
                     <q-icon size="34px" v-else-if="item.type === 'text'" color="info" name="description" />
                     <q-icon size="34px" v-else-if="item.type === 'image'" color="orange" name="photo" />
                     <q-icon size="34px" v-else-if="item.type === 'other'" color="info" name="description" />
-                    <!-- <q-btn v-else round dense color="primary" :icon="playIcon(item.hash)" @click="onClickPlayButton(item.hash)" /> -->
-                    <q-btn v-else round dense color="primary" icon="play_arrow"/>
+                    <q-btn v-else round dense color="primary" :icon="playIcon(item.hash)" @click="onClickPlayButton(item.hash)" />
+                    <!-- <q-btn v-else round dense color="primary" icon="play_arrow"/> -->
                 </q-item-section>
 
                 <q-item-section>
@@ -44,6 +46,14 @@
                     transition-hide="jump-up"
                 >
                     <q-list separator>
+                        <q-item clickable @click="addToQueue(item)" v-if="item.type === 'audio'">
+                            <q-item-section>Add to Play List</q-item-section>
+                        </q-item>
+
+                        <q-item clickable @click="playNext(item)" v-if="item.type === 'audio'">
+                            <q-item-section>Play Next</q-item-section>
+                        </q-item>
+
                         <q-item clickable @click="download(item)">
                             Download File
                         </q-item>
@@ -76,6 +86,7 @@
 
 import { mapState, mapActions } from 'pinia'
 import { useDownloadCardStore } from '../stores/downloadCard'
+import { useAudioPlayerStore } from '../stores/audioPlayer'
 
 export default{
     name: 'WorkTree',
@@ -110,7 +121,26 @@ export default{
             'fileListStore',
             'isCalculatingSizeStore',
             'doneListStore',
-        ])
+        ]),
+
+        ...mapState(useAudioPlayerStore, [
+            'currentPlayingFile',
+            'GET_PLAYING',
+            'queue',
+            'queueIndex',
+            'GET_QUEUE'
+        ]),
+
+        queueLocal() {
+            const queueLocal = []
+            this.fatherFolder.forEach(item => {
+                if (item.type === 'audio') {
+                    queueLocal.push(item)
+                }
+            })
+            // console.log('queue', queue);
+            return queueLocal
+        }
     },
 
     watch: {
@@ -148,7 +178,15 @@ export default{
             'RESET',
             'GET_REAL_TIME_SIZE',
             'CLOSE_DOWNLOAD_CARD',
-            'GET_FILES'
+            'GET_FILES',
+        ]),
+
+        ...mapActions(useAudioPlayerStore ,[
+            'SET_QUEUE',
+            'TOGGLE_PLAYING',
+            'PLAY_NEXT',
+            'ADD_TO_QUEUE',
+            'PLAY',
         ]),
 
         getUserPlatform() {
@@ -166,7 +204,7 @@ export default{
             }
         },
 
-        onClickIten(item) {
+        onClickItem(item) {
             if (item.type === 'folder') {
                 this.path.push(item.folderDirName)
                 this.$emit('path_down', this.path)
@@ -177,6 +215,29 @@ export default{
             else if (item.type === 'other' || item.type === 'mp4') {
                 this.download(item);
             }
+            else if (this.currentPlayingFile.hash !== item.hash) {
+                this.SET_QUEUE({
+                    queue: this.queueLocal.concat(),
+                    index: this.queueLocal.findIndex(file => file.hash === item.hash),
+                    resetPlaying: true
+                })
+            }
+        },
+
+        onClickPlayButton (hash) {
+            if (this.currentPlayingFile.hash === hash) {
+                this.TOGGLE_PLAYING()
+            } else {
+                this.SET_QUEUE({
+                    queue: this.queueLocal.concat(),
+                    index: this.queueLocal.findIndex(file => file.hash === hash),
+                    resetPlaying: true
+                })
+            }
+        },
+
+        playIcon (hash) {
+            return this.GET_PLAYING && this.currentPlayingFile.hash === hash ? "pause" : "play_arrow"
         },
 
         openFile (file) {
@@ -410,8 +471,18 @@ export default{
             catch(err) {
                 console.log(`ERR: ${fileName}, URL: ${url}, err: ${err}`);
             }
-        }
+        },
+
+        addToQueue (file) {
+            this.ADD_TO_QUEUE(file)
+        },
         
+        playNext (file) {
+            let arrs = this.GET_QUEUE
+            arrs.splice(this.queueIndex + 1, 0, file);
+            this.PLAY_NEXT(arrs)
+        },
+
     }
 }
 

@@ -38,7 +38,24 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
         title: '',
         workTitle: ''
       }
-    }
+    },
+
+    GET_PLAYING(state) {
+      return state.playing
+    },
+
+    GET_HIDE(state) {
+      return state.hide
+    },
+
+    GET_VOLUME(state) {
+      return state.volume
+    },
+
+    GET_QUEUE(state) {
+      return state.queue
+    },
+
   },
 
   actions: {
@@ -85,7 +102,8 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
   
       if (payload.resetPlaying) {
         this.playing = true
-      }    
+      }
+      // console.log('queueStore', this.queue);
     },
     EMPTY_QUEUE () {
       this.playing = false
@@ -93,10 +111,13 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       this.queueIndex = 0
     },
     ADD_TO_QUEUE (file) {
-      this.queue.push(file)
+      // this.queue = this.queue.concat(file)
+      this.queue = this.queue.concat(file)
+      // this.queue.splice(this.queueIndex + 1, 0, file)
     },
     REMOVE_FROM_QUEUE (index) {
-      this.queue.splice(index, 1)
+      const queue = this.queue
+      queue.splice(index, 1)
   
       if (index === this.queueIndex) {
         this.playing = false
@@ -104,6 +125,8 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       } else if (index < this.queueIndex) {
         this.queueIndex -= 1
       } 
+
+      this.queue = queue.concat()
     },
 
     SET_DURATION (second) {
@@ -116,7 +139,9 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
 
     // Add a file after the current playing item in the queue.
     PLAY_NEXT (file) {
-      this.queue.splice(this.queueIndex + 1, 0, file);
+      // this.queue.splice(this.queueIndex + 1, 0, file)
+      console.log(file);
+      this.queue = file.concat()
     },
 
     CHANGE_PLAY_MODE () {
@@ -177,6 +202,6 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
     CLEAR_SLEEP_MODE () {
       this.sleepTime = null
       this.sleepMode = false
-    }
+    },
   }
 })

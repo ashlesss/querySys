@@ -1,7 +1,7 @@
 {
   "name": "querysys",
   "version": "0.0.1",
-  "description": "Query ssytem for RJ works",
+  "description": "Query system for RJ works",
   "productName": "querysys",
   "author": "ashlesss <hidahza@gmail.com>",
   "private": true,
@@ -19,7 +19,10 @@
     "quasar": "^2.6.0",
     "socket.io-client": "^4.7.1",
     "vue": "^3.0.0",
-    "vue-router": "^4.0.0"
+    "vue-plyr": "^7.0.0",
+    "vue-router": "^4.0.0",
+    "vue-slider-component": "^4.0.0-beta.8",
+    "vuedraggable": "^4.0.1"
   },
   "devDependencies": {
     "@quasar/app-vite": "^1.0.0",
@@ -32,7 +35,6 @@
   },
   "engines": {
     "node": "^18 || ^16 || ^14.19",
-    "npm": ">= 6.13.4",
-    "yarn": ">= 1.21.1"
+    "npm": ">= 6.13.4"
   }
 }

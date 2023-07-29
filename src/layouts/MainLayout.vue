@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh lpR fFf">
-      <q-header reveal elevated v-bind:class="headerClass">
+      <q-header elevated v-bind:class="headerClass">
         <q-toolbar>
           <q-btn dense flat round icon="menu" @click="drawerOpen = !drawerOpen" />
 
@@ -20,7 +20,7 @@
         </q-input>
 
         </q-toolbar>
-
+        <AudioPlayer />
       </q-header>
 
     <q-drawer
@@ -99,8 +99,7 @@
       </q-drawer>
 
       <DownloadCard />
-
-      
+      <!-- <AudioPlayer /> -->
     <q-page-container>
       <!-- <router-view /> -->
       <router-view v-slot="{ Component }">
@@ -123,13 +122,16 @@
 import { defineComponent, ref } from 'vue';
 import { mapState, mapActions } from 'pinia'
 import { useDownloadCardStore } from '../stores/downloadCard'
+import { useAudioPlayerStore } from '../stores/audioPlayer'
 import DownloadCard from '../components/DownloadCard.vue'
+import AudioPlayer from '../components/AudioPlayer.vue'
 
 export default defineComponent({
   name: 'MainLayout',
 
   components: {
-    DownloadCard
+    DownloadCard,
+    AudioPlayer
   },
 
   data() {
@@ -220,6 +222,10 @@ export default defineComponent({
       'seamlessStore',
       'fileListStore'
     ]),
+
+    ...mapState(useAudioPlayerStore, [
+      'GET_HIDE'
+    ])
   },
 
   methods: {
