@@ -81,12 +81,13 @@ export default defineComponent({
             works: [],
             currPage: Number(this.$route.query.page) || 1,
             maxPage: 1,
-            totalWorks: [],
+            totalWorks: 0,
             pageTitle: '',
             searchItems: [],
             tempList: [],
             tempKeyword: '',
             isLoading: false,
+            keyword: this.$route.query.keyword || '',
             sortOption: {
                 label: '按照发售日期新到老的顺序',
                 order: 'regist_date',
@@ -156,22 +157,51 @@ export default defineComponent({
         url() {
             const query = this.$route.query
             if (query.keyword) {
-                return `/api/query/search/${encodeURIComponent(query.keyword)}`
+                // console.log(query.keyword);
+                return `/api/query/search/${encodeURIComponent(query.keyword)}${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
+                
             }
             else {
-                return `/api/query/works`
+                console.log(`/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`);
+                return `/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
             }
         },
     },
 
     watch: {
         url() {
-            this.reset()
+            // console.log();
+            if (this.$route.path.match(/\bworks\b/)) {
+                this.isLoading = true
+                // console.log(this.$route.query.keyword === this.keyword);
+                if ((this.$route.query.keyword ? this.$route.query.keyword : '') === this.keyword) {
+                    console.log('keyword not change');
+                    this.resetPageTitle()
+                }
+                else {
+                    // console.log('keyword changed');
+                    console.log('url page', this.$route.query.page);
+                    if (this.$route.query.page) {
+                        
+                        this.resetPageTitle()
+                        this.keyword = this.$route.query.keyword
+                    }
+                    else {
+                        this.reset()
+                        this.keyword = this.$route.query.keyword
+                    }
+                    
+                    // console.log('keyword changed to', this.keyword);
+                    // this.keyword = this.$route.query.keyword
+                }
+            }
+
         },
 
         sortOption (newSortOptionSetting) {
+            // console.log(newSortOptionSetting);
             localStorage.sortOption = JSON.stringify(newSortOptionSetting);
-            this.reset();
+            this.sortOptionReset();
         },
 
         $route(data) {
@@ -183,22 +213,43 @@ export default defineComponent({
                 document.title = 'querysys'
             }
 
-            if (data.query.page) {
-                this.isLoading = true
-                this.currPage = Number(data.query.page)
-                this.resetPageTitle()
+            if (data.path.match(/\bworks\b/)) {
+                if (data.query.page) {
+                    console.log('currpage', this.currPage);
+                    console.log('lib', data.query.page);
+                    // this.isLoading = true
+                    this.currPage = Number(data.query.page)
+                    console.log('currpage', this.currPage);
+                    // this.resetPageTitle()
+                }
+                // console.log(data.fullPath);
+                else  {
+                    // this.isLoading = true
+                    this.currPage = 1
+                    console.log('lib currPage', this.currPage);
+                    // this.resetPageTitle()
+                }
             }
-            else {
-                this.isLoading = true
-                this.currPage = 1
-                this.resetPageTitle()
-            }
+            
         },
+
+        // currPage() {
+        //     if (this.$route.query.keyword) {
+        //         this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${this.currPage}`)
+        //     }
+        //     else {
+        //         this.$router.push(`/works?page=${this.currPage}`)
+        //     }
+        // }
     },
 
     mounted() {
         if (localStorage.sortOption) {
-            this.sortOption = JSON.parse(localStorage.sortOption);
+            try {
+                this.sortOption = JSON.parse(localStorage.sortOption);
+            } catch {
+                localStorage.removeItem('sortOption');
+            }
         }
         
         if (this.$route.query.keyword) {
@@ -207,45 +258,40 @@ export default defineComponent({
         else {
             document.title = 'querysys'
         }
+
+        // window.addEventListener('searchKeyword', event => {
+        //     console.log(event);
+        // })
     },
 
     methods: {
         pageChange(pageNumber) {
             this.isLoading = true
-            this.currPage = pageNumber
+            // this.currPage = pageNumber
+            console.log('pageChange run', pageNumber);
             if (this.$route.query.keyword) {
-                this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${this.currPage}`)
+                this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${pageNumber}`)
             }
             else {
-                this.$router.push(`/works?page=${this.currPage}`)
+                this.$router.push(`/works?page=${pageNumber}`)
             }
-            this.resetPageTitle()
         },
 
         requestWorks() {
             this.works= []
+            console.log('requestWork run');
             const params = {
-                page: this.currPage,
                 order: this.sortOption.order,
                 sort: this.sortOption.sort
             }
             // console.log(this.url);
             this.$axios.get(this.url, { params })
             .then(val => {
-                if (val.data.pagination.total_works > 0 && this.currPage <= val.data.pagination.max_page) {
-                    const pagination = val.data.pagination
-                    this.currPage = pagination.current_page
-                    this.maxPage = pagination.max_page
-                    this.totalWorks = pagination.total_works
 
-                    const result = val.data
-                    this.works = result
-                    this.isLoading = false
-                }
-                else if (val.data.pagination.total_works > 0 && this.currPage > val.data.pagination.max_page) {
-                    const pagination = val.data.pagination
-                    this.currPage = pagination.max_page
-                    this.maxPage = pagination.max_page
+                
+                const pagination = val.data.pagination
+                if (this.currPage > pagination.max_page) {
+                    this.maxPage = this.currPage
                     this.totalWorks = pagination.total_works
 
                     const result = val.data
@@ -253,14 +299,35 @@ export default defineComponent({
                     this.isLoading = false
                 }
                 else {
-                    this.current_page = 1
-                    this.maxPage = 1
-                    this.totalWorks = 0
+                    // this.currPage = pagination.current_page
+                    this.maxPage = pagination.max_page
+                    this.totalWorks = pagination.total_works
+
+                    const result = val.data
+                    this.works = result
                     this.isLoading = false
                 }
+                
+
+                // if (val.data.pagination.total_works > 0) {
+                //     const pagination = val.data.pagination
+                //     // this.currPage = pagination.current_page
+                //     this.maxPage = pagination.max_page
+                //     this.totalWorks = pagination.total_works
+
+                //     const result = val.data
+                //     this.works = result
+                //     this.isLoading = false
+                // }
+                // else {
+                //     this.currPage = 1
+                //     this.maxPage = 1
+                //     this.totalWorks = 0
+                //     this.isLoading = false
+                // }
             })
             .catch(err => {
-                this.current_page = 1
+                this.currPage = 1
                 this.maxPage = 1
                 this.totalWorks = 0
                 this.isLoading = false
@@ -311,12 +378,22 @@ export default defineComponent({
 
         reset() {
             // console.log(this.totalWorks);
+            console.log('reset run');
             this.isLoading = true
-            this.resetPageTitle()
             this.totalWorks = 0
             this.currPage = 1
-            this.requestWorks()
+            this.resetPageTitle()
+            // this.requestWorks()
             // console.log('reseted: ' + this.currPage);
+        },
+
+        sortOptionReset() {
+            console.log('sortOptionReset run');
+            this.isLoading = true
+            this.totalWorks = 0
+            this.resetPageTitle()
+            // this.currPage = 1
+            // this.requestWorks()
         },
 
         removeSearchTag(name, index) {
@@ -347,8 +424,8 @@ export default defineComponent({
         },
     },
 
-    created() {
-        this.resetPageTitle()
-    },
+    // created() {
+    //     this.resetPageTitle()
+    // },
 })
 </script>

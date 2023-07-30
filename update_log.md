@@ -1,5 +1,9 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 7/29/2023
+
+1. Optimize route history and prevent duplicated fetch requests. 
+
 ## 7/28/2023
 
 1. Add player.

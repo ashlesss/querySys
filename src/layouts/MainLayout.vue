@@ -125,6 +125,7 @@ import { useDownloadCardStore } from '../stores/downloadCard'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
 import DownloadCard from '../components/DownloadCard.vue'
 import AudioPlayer from '../components/AudioPlayer.vue'
+import { SessionStorage } from 'quasar';
 
 export default defineComponent({
   name: 'MainLayout',
@@ -163,13 +164,62 @@ export default defineComponent({
 
   watch: {
     keyword() {
-      if (this.keyword) {
+      // sessionStorage.setItem('searchKeyword', this.keyword)
+      // // 
+      // const keyword = sessionStorage.getItem('searchKeyword')
+      // if (keyword) {
+      //   if (this.$route.path.match(/\bworks\b/)) {
+      //     // if (this.$route.query.page) {
+      //     //   console.log('main', this.$route.query.page);
+      //     //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
+      //     // }
+      //     // else {
+      //     //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
+      //     // }
+      //     console.log('main');
+      //     this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
+      //   }
+      // }
+      // else {
+      //   this.$router.push('/works')
+      //   this.keyword = ''
+      //   sessionStorage.removeItem('searchKeyword')
+
+
+      //   // if (this.$route.query.path) {
+      //   //   // console.log('query path exists');
+      //   //   this.$router.push(`${this.$route.fullPath}`)
+      //   // }
+      //   // else {
+      //   //   // console.log('main page: ' + this.$route.fullPath);
+      //   //   if (this.$route.query.page) {
+      //   //     // console.log('main pageNumber', this.$route.query.page);
+      //   //     this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
+      //   //     this.keyword = ''
+      //   //     sessionStorage.removeItem('searchKeyword')
+      //   //   }
+      //   //   else {
+      //   //     this.$router.push(`${this.$route.path}`)
+      //   //     this.keyword = ''
+      //   //     sessionStorage.removeItem('searchKeyword')
+      //   //   }
+          
+      //   // }
+      // }
+
+
+      sessionStorage.setItem('searchKeyword', this.keyword)
+      const keyword = sessionStorage.getItem('searchKeyword')
+
+      if (keyword) {
         if (this.$route.query.page) {
-          this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}&page=${this.$route.query.page}`)
+          console.log('main', this.$route.query.page);
+          this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
         }
         else {
-          this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}`)
+          this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
         }
+        // this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}&page=1`)
       }
       else {
         if (this.$route.query.path) {
@@ -179,12 +229,15 @@ export default defineComponent({
         else {
           // console.log('main page: ' + this.$route.fullPath);
           if (this.$route.query.page) {
+            // console.log('main pageNumber', this.$route.query.page);
             this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
             this.keyword = ''
+            sessionStorage.removeItem('searchKeyword')
           }
           else {
             this.$router.push(`${this.$route.path}`)
             this.keyword = ''
+            sessionStorage.removeItem('searchKeyword')
           }
           
         }
@@ -194,15 +247,29 @@ export default defineComponent({
     $route(data) {
       if (data.query.keyword) {
         this.keyword = data.query.keyword
+        sessionStorage.setItem('searchKeyword', data.query.keyword)
       }
       else {
-        this.keyword = ''
+        if (!data.path.match(/\bwork\b/)) {
+          this.keyword = ''
+          sessionStorage.removeItem('searchKeyword')
+        }
       }
     }
+
   },
 
   created() {
-    this.$route.query.keyword ? this.keyword = this.$route.query.keyword : ''
+    // this.$route.query.keyword ? this.keyword = this.$route.query.keyword : ''
+    if (this.$route.query.keyword) {
+      sessionStorage.setItem('searchKeyword', this.$route.query.keyword)
+      this.keyword = this.$route.query.keyword
+    }
+    else {
+      const keyword = sessionStorage.getItem('searchKeyword')
+      keyword ? this.keyword = keyword : this.keyword = ''
+      
+    }
   },
 
   computed: {
