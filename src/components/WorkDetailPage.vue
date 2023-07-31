@@ -52,7 +52,8 @@
         <div>
             <span class="q-mx-sm text-weight-medium text-h6 text-red">{{ workInfo.official_price }} JPY</span>
             <span>Sales: {{ workInfo.dl_count }}</span>
-            <span v-if="!workInfo.nsfw" class="q-mx-sm" style="background: #e6f7d6; color: #56842a">SFW</span>
+            <q-chip size="sm" v-show="!workInfo.nsfw" outline square color="green" text-color="primary" label="SFW" />
+            <q-chip size="sm" v-show="workInfo.has_subtitle" outline square color="primary" text-color="primary" label="CC" />
         </div>
 
         <!-- Tags -->

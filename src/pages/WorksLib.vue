@@ -170,17 +170,15 @@ export default defineComponent({
 
     watch: {
         url() {
-            // console.log();
             if (this.$route.path.match(/\bworks\b/)) {
                 this.isLoading = true
-                // console.log(this.$route.query.keyword === this.keyword);
                 if ((this.$route.query.keyword ? this.$route.query.keyword : '') === this.keyword) {
-                    console.log('keyword not change');
+                    // console.log('keyword not change');
                     this.resetPageTitle()
                 }
                 else {
                     // console.log('keyword changed');
-                    console.log('url page', this.$route.query.page);
+                    // console.log('url page', this.$route.query.page);
                     if (this.$route.query.page) {
                         
                         this.resetPageTitle()
@@ -190,9 +188,6 @@ export default defineComponent({
                         this.reset()
                         this.keyword = this.$route.query.keyword
                     }
-                    
-                    // console.log('keyword changed to', this.keyword);
-                    // this.keyword = this.$route.query.keyword
                 }
             }
 
@@ -207,40 +202,34 @@ export default defineComponent({
         $route(data) {
             // document.title = 'querysys'
             if (data.query.keyword) {
-                document.title = 'Search for ' + this.$route.query.keyword + (this.$route.query.page ? ' On page ' + this.$route.query.page : '')
+                document.title = `Search for ${this.$route.query.keyword} ${this.$route.query.page ? `| Page ${this.$route.query.page}` : ''}`
+            }
+            else if (this.$route.query.page) {
+                document.title = `Querysys | Page ${this.$route.query.page}`
             }
             else {
-                document.title = 'querysys'
+                document.title = 'Querysys'
             }
 
             if (data.path.match(/\bworks\b/)) {
                 if (data.query.page) {
-                    console.log('currpage', this.currPage);
-                    console.log('lib', data.query.page);
+                    // console.log('currpage', this.currPage);
+                    // console.log('lib', data.query.page);
                     // this.isLoading = true
                     this.currPage = Number(data.query.page)
-                    console.log('currpage', this.currPage);
+                    // console.log('currpage', this.currPage);
                     // this.resetPageTitle()
                 }
                 // console.log(data.fullPath);
                 else  {
                     // this.isLoading = true
                     this.currPage = 1
-                    console.log('lib currPage', this.currPage);
+                    // console.log('lib currPage', this.currPage);
                     // this.resetPageTitle()
                 }
             }
             
         },
-
-        // currPage() {
-        //     if (this.$route.query.keyword) {
-        //         this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${this.currPage}`)
-        //     }
-        //     else {
-        //         this.$router.push(`/works?page=${this.currPage}`)
-        //     }
-        // }
     },
 
     mounted() {
@@ -251,24 +240,26 @@ export default defineComponent({
                 localStorage.removeItem('sortOption');
             }
         }
+        else {
+            this.resetPageTitle()
+        }
         
         if (this.$route.query.keyword) {
-            document.title = 'Search for ' + this.$route.query.keyword + 'On page ' + this.$route.query.page
+            document.title = `Search for ${this.$route.query.keyword} ${this.$route.query.page ? `| Page ${this.$route.query.page}` : ''}`
+        }
+        else if (this.$route.query.page) {
+            document.title = `Querysys | Page ${this.$route.query.page}`
         }
         else {
-            document.title = 'querysys'
+            document.title = 'Querysys'
         }
-
-        // window.addEventListener('searchKeyword', event => {
-        //     console.log(event);
-        // })
     },
 
     methods: {
         pageChange(pageNumber) {
             this.isLoading = true
             // this.currPage = pageNumber
-            console.log('pageChange run', pageNumber);
+            // console.log('pageChange run', pageNumber);
             if (this.$route.query.keyword) {
                 this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${pageNumber}`)
             }
@@ -287,8 +278,6 @@ export default defineComponent({
             // console.log(this.url);
             this.$axios.get(this.url, { params })
             .then(val => {
-
-                
                 const pagination = val.data.pagination
                 if (this.currPage > pagination.max_page) {
                     this.maxPage = this.currPage
@@ -307,24 +296,6 @@ export default defineComponent({
                     this.works = result
                     this.isLoading = false
                 }
-                
-
-                // if (val.data.pagination.total_works > 0) {
-                //     const pagination = val.data.pagination
-                //     // this.currPage = pagination.current_page
-                //     this.maxPage = pagination.max_page
-                //     this.totalWorks = pagination.total_works
-
-                //     const result = val.data
-                //     this.works = result
-                //     this.isLoading = false
-                // }
-                // else {
-                //     this.currPage = 1
-                //     this.maxPage = 1
-                //     this.totalWorks = 0
-                //     this.isLoading = false
-                // }
             })
             .catch(err => {
                 this.currPage = 1

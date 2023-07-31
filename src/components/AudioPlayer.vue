@@ -150,10 +150,6 @@
                 </div>
 
                 <q-separator />
-<!-- 
-                <div>
-                    {{ GET_QUEUE }}
-                </div> -->
 
                 <q-list style="max-height: 450px" class="scroll">
                     <draggable

@@ -115,6 +115,10 @@
         </q-page-sticky>
       </router-view>
     </q-page-container>
+
+    <q-footer class="q-pa-none">
+      <PlayerBar />
+    </q-footer>
   </q-layout>
 </template>
 
@@ -125,14 +129,15 @@ import { useDownloadCardStore } from '../stores/downloadCard'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
 import DownloadCard from '../components/DownloadCard.vue'
 import AudioPlayer from '../components/AudioPlayer.vue'
-import { SessionStorage } from 'quasar';
+import PlayerBar from '../components/PlayerBar.vue'
 
 export default defineComponent({
   name: 'MainLayout',
 
   components: {
     DownloadCard,
-    AudioPlayer
+    AudioPlayer,
+    PlayerBar
   },
 
   data() {

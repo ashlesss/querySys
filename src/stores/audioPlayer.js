@@ -111,9 +111,9 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       this.queueIndex = 0
     },
     ADD_TO_QUEUE (file) {
-      // this.queue = this.queue.concat(file)
-      this.queue = this.queue.concat(file)
-      // this.queue.splice(this.queueIndex + 1, 0, file)
+      const queue = this.queue
+      queue.push(file)
+      this.queue = queue.concat()
     },
     REMOVE_FROM_QUEUE (index) {
       const queue = this.queue
@@ -140,7 +140,7 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
     // Add a file after the current playing item in the queue.
     PLAY_NEXT (file) {
       // this.queue.splice(this.queueIndex + 1, 0, file)
-      console.log(file);
+      // console.log(file);
       this.queue = file.concat()
     },
 
@@ -166,6 +166,7 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       const index = (this.playMode.id >= playModes.length - 1) ? 0 : (this.playMode.id + 1)
   
       this.playMode = playModes[index]
+      console.log(this.playMode);
     },
 
     TOGGLE_MUTED () {

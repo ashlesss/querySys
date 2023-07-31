@@ -1,5 +1,11 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 7/30/2023
+
+1. Add `random` sorting.
+2. Add `q-chip` to works that have subtitle or SFW.
+3. Add `PlayBar` component.
+`
 ## 7/29/2023
 
 1. Optimize route history and prevent duplicated fetch requests. 
