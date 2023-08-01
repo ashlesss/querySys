@@ -1,5 +1,13 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+### 7/31/2023
+
+1. User now can go to certain page by input page number in the input box next to the pagination buttons.
+2. Handle when users open a work detail page in new tab/window push them to main page after they have clicked the back `<` button. 
+
+### TODO 
+1. Create worker for fetching files(download folder) from server.
+
 ## 7/30/2023
 
 1. Add `random` sorting.

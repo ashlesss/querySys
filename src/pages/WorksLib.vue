@@ -22,12 +22,20 @@
 
     <!-- Sorting selector -->
     <div class="row justify-between q-mb-md q-mr-sm q-ml-md">
-        <q-select 
-        rounded 
-        outlined 
-        v-model="sortOption" 
-        :options="options" 
-        label="Sort By"/>
+        <div class="col">
+            <q-select 
+                rounded 
+                outlined 
+                v-model="sortOption" 
+                :options="options" 
+                label="Sort By" 
+                style="max-width: 30%;"
+            />
+        </div>
+
+        <div class="col" style="display: flex;">
+            <q-checkbox v-model="subtitle" label="With Subtitle" />
+        </div>
     </div>
 
     <!-- Load spinner -->
@@ -42,22 +50,40 @@
 
     <!-- Works -->
     <!-- <q-infinite-scroll @load="requestWorks" :offset="250"> -->
-        <div class="row q-px-sm q-pt-sm q-col-gutter-x-md q-col-gutter-y-lg">
-            <!-- col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2 -->
-            <div class="col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2" v-for="work in works.works" :key="work.rjcode" > 
-                <WordCard :work="work" class="fit"/> 
-            </div>
+    <div class="row q-px-sm q-pt-sm q-col-gutter-x-md q-col-gutter-y-lg">
+        <!-- col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2 -->
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2" v-for="work in works.works" :key="work.rjcode" > 
+            <WordCard :work="work" class="fit"/> 
         </div>
-    <!-- </q-infinite-scroll> -->
+    </div>
+
+    <div v-show="isNoWork && !isLoading" class="row text-h6 text-bold" style="justify-content: center; align-items: center; display: flex;">
+        END
+    </div>
+
     <div class="q-pa-lg flex flex-center ">
-        <q-pagination
-        v-show="!isLoading"
-        v-model="currPage"
-        :max="maxPage"
-        :max-pages="6"
-        direction-links
-        @update:model-value="pageChange($event)"
-        />
+        <div>
+            <q-pagination
+                size="18px"
+                v-show="!isLoading"
+                v-model="currPage"
+                :max="maxPage"
+                :max-pages="6"
+                direction-links
+                outline
+                gutter="sm"
+                @update:model-value="pageChange($event)"
+            />
+        </div>
+
+        <div class="q-ml-sm text-h5" v-show="!isLoading">
+            Go to 
+            <!-- Go to <q-input class="row" outlined v-model="gotoPage" :dense="dense" style="max-width: 50px;"/> -->
+        </div>
+
+        <div class="q-ml-md" style="max-width: 50px;">
+            <q-input v-show="!isLoading" class="row" outlined v-model="gotoPage" :dense="dense" @keydown.enter.prevent="gotoThatPage"/>
+        </div>
         <!-- @update:model-value="pageChange($event)" -->
     </div>
 </template>
@@ -149,21 +175,38 @@ export default defineComponent({
                 order: 'random',
                 sort: 'desc'
                 }
-            ]
+            ],
+            subtitle: false,
+            isNoWork: false,
+            gotoPage: '',
+            dense: true
         }
     },
 
     computed: {
         url() {
             const query = this.$route.query
+            // if (this.$route.path.match(/\bworks\b/)) {
+            //     if (query.keyword) {
+            //         // console.log(query.keyword);
+            //         return `/api/query/search/${encodeURIComponent(query.keyword)}${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
+                    
+            //     }
+            //     else {
+            //         console.log(`/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`);
+            //         return `/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
+            //     }
+            // }
             if (query.keyword) {
                 // console.log(query.keyword);
-                return `/api/query/search/${encodeURIComponent(query.keyword)}${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
+                // return `/api/query/search/${encodeURIComponent(query.keyword)}${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
+                return `/api/query/search/${encodeURIComponent(query.keyword)}?page=${this.currPage}`
                 
             }
             else {
                 console.log(`/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`);
-                return `/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
+                // return `/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
+                return `/api/query/works?page=${this.currPage}`
             }
         },
     },
@@ -211,6 +254,7 @@ export default defineComponent({
                 document.title = 'Querysys'
             }
 
+            // console.log(data.fullPath);
             if (data.path.match(/\bworks\b/)) {
                 if (data.query.page) {
                     // console.log('currpage', this.currPage);
@@ -228,7 +272,11 @@ export default defineComponent({
                     // this.resetPageTitle()
                 }
             }
-            
+        },
+
+        subtitle() {
+            this.isLoading = true
+            this.resetPageTitle()
         },
     },
 
@@ -273,29 +321,49 @@ export default defineComponent({
             console.log('requestWork run');
             const params = {
                 order: this.sortOption.order,
-                sort: this.sortOption.sort
+                sort: this.sortOption.sort,
+                subtitle: this.subtitle ? 1 : 0
             }
-            // console.log(this.url);
+            // console.log(params);
             this.$axios.get(this.url, { params })
             .then(val => {
                 const pagination = val.data.pagination
-                if (this.currPage > pagination.max_page) {
-                    this.maxPage = this.currPage
-                    this.totalWorks = pagination.total_works
+                if (pagination.max_page !== 0) {
+                    if (this.currPage > pagination.max_page) {
+                        this.maxPage = this.currPage
+                        this.totalWorks = pagination.total_works
 
-                    const result = val.data
-                    this.works = result
-                    this.isLoading = false
+                        const result = val.data
+                        this.works = result
+                        this.isNoWork = true
+                        this.isLoading = false
+                    }
+                    else {
+                        // this.currPage = pagination.current_page
+                        this.maxPage = pagination.max_page
+                        this.totalWorks = pagination.total_works
+
+                        const result = val.data
+                        this.works = result
+                        if (pagination.current_page === pagination.max_page) {
+                            this.isNoWork = true
+                        }
+                        else {
+                            this.isNoWork = false
+                        }
+                        this.isLoading = false
+                    }
                 }
                 else {
-                    // this.currPage = pagination.current_page
-                    this.maxPage = pagination.max_page
+                    this.maxPage = 1
                     this.totalWorks = pagination.total_works
 
                     const result = val.data
                     this.works = result
+                    this.isNoWork = true
                     this.isLoading = false
                 }
+                
             })
             .catch(err => {
                 this.currPage = 1
@@ -391,6 +459,20 @@ export default defineComponent({
                 this.$router.push(`/works`)
                 this.tempList = []
                 this.tempKeyword = ''
+            }
+        },
+
+        gotoThatPage() {
+            if (!isNaN(Number(this.gotoPage))) {
+                if (this.$route.query.keyword) {
+                    this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${this.gotoPage}`)
+                }
+                else {
+                    this.$router.push(`/works?page=${this.gotoPage}`)
+                }
+            }
+            else {
+                this.gotoPage = ''
             }
         },
     },

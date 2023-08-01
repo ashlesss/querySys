@@ -4,7 +4,7 @@
         <q-toolbar>
           <q-btn dense flat round icon="menu" @click="drawerOpen = !drawerOpen" />
 
-          <q-btn flat size="md" icon="arrow_back_ios" @click="back(this.$route.path)" v-if="isNotAtHomePage"/>
+          <q-btn flat size="md" icon="arrow_back_ios" @click="back()" v-if="isNotAtHomePage"/>
   
           <q-toolbar-title>
             <router-link to="/" class="text-white" style="text-decoration:none">
@@ -312,9 +312,14 @@ export default defineComponent({
       }
     },
 
-    back(path) {
-      // console.log(path);
-      this.$router.go(-1)
+    back() {
+      const historyPathLen = history.length;
+      if (historyPathLen <= 1) {
+        this.$router.push(`/works`)
+      }
+      else {
+        this.$router.go(-1)
+      }
     },
 
     ...mapActions(useDownloadCardStore, [
