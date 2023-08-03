@@ -179,6 +179,7 @@ export default{
             'GET_REAL_TIME_SIZE',
             'CLOSE_DOWNLOAD_CARD',
             'GET_FILES',
+            'GET_DOWNLOAD_SPEED'
         ]),
 
         ...mapActions(useAudioPlayerStore ,[
@@ -307,15 +308,27 @@ export default{
                     this.GET_CURR_JOB_INDEX(currentJob)
 
 
-                    await this.downloadAndSaveFile(fileUrl, fileHandle, entry.title)
+                    const downloadStatus = await this.downloadAndSaveFile(fileUrl, fileHandle, entry.title)
+
+                    if (downloadStatus === 'success') {
+                        this.GET_DONE_FILES('done')
+                        this.PROGRESS_VALUE()
+                        if (this.doneListStore.length === this.fileListStore.length) {
+                            this.DOWNLOAD_COMPLETED()
+                        }
+                        console.log(`${entry.title} completed`);
+                    }
+                    else {
+                        this.GET_DONE_FILES('failed')
+                    }
 
                     // this.$emit('job_done', 'done')
-                    this.GET_DONE_FILES('done')
-                    this.PROGRESS_VALUE()
-                    if (this.doneListStore.length === this.fileListStore.length) {
-                        this.DOWNLOAD_COMPLETED()
-                    }
-                    console.log(`${entry.title} completed`);
+                    // this.GET_DONE_FILES('done')
+                    // this.PROGRESS_VALUE()
+                    // if (this.doneListStore.length === this.fileListStore.length) {
+                    //     this.DOWNLOAD_COMPLETED()
+                    // }
+                    // console.log(`${entry.title} completed`);
                 }
                 catch(err) {
                     console.log(`ERR: ${entry.title}`);
@@ -325,6 +338,7 @@ export default{
         },
 
         async downloadAndSaveFile(url, fileHandle, fileName) {
+            let speedReportInterval
             try {
 
                 const header = {
@@ -335,6 +349,8 @@ export default{
                     headers: header
                 });
                 let downloaded = 0;
+                const startTime = Date.now();
+                const contentLength = response.headers.get('Content-Length');
 
                 if (response.ok) {
                     // Create a writable stream to save the file
@@ -344,27 +360,49 @@ export default{
                     // Create a ReadableStream from the response body
                     const reader = response.body.getReader();
 
+                    speedReportInterval = setInterval(() => {
+                        const durationInSeconds = (Date.now() - startTime) / 1000;
+                        const bytesPerSecond = downloaded / durationInSeconds;
+                        this.GET_DOWNLOAD_SPEED(bytesPerSecond)
+                        this.GET_REAL_TIME_SIZE(this.calSizeUnit(contentLength, downloaded))
+                    }, 500);
+
                     // Start reading the response stream and write the chunks to the file
                     while (true) {
                         const { done, value } = await reader.read();
-                        if (done) break
+                        if (done) {
+                            clearInterval(speedReportInterval)
+                            this.GET_REAL_TIME_SIZE(this.calSizeUnit(contentLength, downloaded))
+                            break
+                        }
                         
                         downloaded += value.length;
                         // this.$emit('progress', downloaded)
-                        this.GET_REAL_TIME_SIZE(downloaded)
+                        // this.GET_REAL_TIME_SIZE(downloaded)
                         // Write the chunk to the file
                         await writableStream.write(value);
                     }
 
                     // Close the writable stream
                     await writableStream.close();
+                    return 'success'
                 }
                 else {
-                    await retryFetching(url, fileHandle, fileName)
+                    const retryDownloadStatus = await retryFetching(url, fileHandle, fileName)
+                    if (retryDownloadStatus === 'retry_fatch_success') {
+                        return 'success'
+                    }
+                    else {
+                        return 'failed'
+                    }
                 }
             }
             catch(err) {
                 console.log(`ERR: ${fileName}, URL: ${url}, err: ${err}`);
+                if (speedReportInterval) {
+                    clearInterval(speedReportInterval)
+                }
+                return 'failed'
             }
         },
 
@@ -463,6 +501,7 @@ export default{
 
                     // Close the writable stream
                     await writableStream.close();
+                    return 'retry_fatch_success'
                 }
                 else {
                     throw Error(`Can't get file on retry, file: ${fileName}`)
@@ -470,6 +509,7 @@ export default{
             }
             catch(err) {
                 console.log(`ERR: ${fileName}, URL: ${url}, err: ${err}`);
+                throw Error(`Retry fetch file failed`)
             }
         },
 
@@ -482,6 +522,21 @@ export default{
             arrs.splice(this.queueIndex + 1, 0, file);
             this.PLAY_NEXT(arrs)
         },
+
+        calSizeUnit(fileSize, downloaded) {
+            if (fileSize < 1024) {
+                return downloaded
+            }
+            else if (fileSize < 1048576) {
+                return downloaded / 1024
+            }
+            else if (fileSize < 1073741824) {
+                return downloaded / 1048576
+            }
+            else {
+                return downloaded / 1073741824
+            }
+        }
 
     }
 }

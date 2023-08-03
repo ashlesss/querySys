@@ -20,7 +20,7 @@
     "socket.io-client": "^4.7.1",
     "vue": "^3.0.0",
     "vue-plyr": "^7.0.0",
-    "vue-router": "^4.0.0",
+    "vue-router": "^4.2.4",
     "vue-slider-component": "^4.0.0-beta.8",
     "vuedraggable": "^4.0.1"
   },

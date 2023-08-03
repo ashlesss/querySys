@@ -1,6 +1,22 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
-### 7/31/2023
+## 8/2/2023 
+
+1. Optimize api requests caused by component transitions.
+2. Optimize back button.
+3. Create navigation guards that control the activation of pagination/page query to prevent repeat api requests.
+
+### TODO 
+1. There is still a transition api request cause by `keyword`.
+
+
+## 8/1/2023
+
+1. Handle download fail event.
+2. Add download speed to the `DownloadCard` to indicate current download speed.
+3. Limit `realTimeSizeDoneStore` report rate to 1 report per 500 ms
+
+## 7/31/2023
 
 1. User now can go to certain page by input page number in the input box next to the pagination buttons.
 2. Handle when users open a work detail page in new tab/window push them to main page after they have clicked the back `<` button. 

@@ -92,6 +92,8 @@
 import { defineComponent } from 'vue';
 import WordCard from '../components/WorkCard.vue';
 import NotifyMixin from '../mixins/Notification.js'
+import { mapState, mapActions } from 'pinia'
+import { usePageControlStore } from '../stores/pageControl'
 
 export default defineComponent({
     name: "WorksLib",
@@ -186,29 +188,17 @@ export default defineComponent({
     computed: {
         url() {
             const query = this.$route.query
-            // if (this.$route.path.match(/\bworks\b/)) {
-            //     if (query.keyword) {
-            //         // console.log(query.keyword);
-            //         return `/api/query/search/${encodeURIComponent(query.keyword)}${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
-                    
-            //     }
-            //     else {
-            //         console.log(`/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`);
-            //         return `/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
-            //     }
-            // }
             if (query.keyword) {
-                // console.log(query.keyword);
-                // return `/api/query/search/${encodeURIComponent(query.keyword)}${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
                 return `/api/query/search/${encodeURIComponent(query.keyword)}?page=${this.currPage}`
-                
             }
             else {
-                console.log(`/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`);
-                // return `/api/query/works${this.$route.query.page? `?page=${this.$route.query.page}` : ''}`
                 return `/api/query/works?page=${this.currPage}`
             }
         },
+
+        ...mapState(usePageControlStore, [
+            'pageActive'
+        ])
     },
 
     watch: {
@@ -216,20 +206,19 @@ export default defineComponent({
             if (this.$route.path.match(/\bworks\b/)) {
                 this.isLoading = true
                 if ((this.$route.query.keyword ? this.$route.query.keyword : '') === this.keyword) {
-                    // console.log('keyword not change');
+                    console.log('keyword not change');
                     this.resetPageTitle()
                 }
                 else {
-                    // console.log('keyword changed');
+                    console.log('keyword changed');
                     // console.log('url page', this.$route.query.page);
                     if (this.$route.query.page) {
-                        
                         this.resetPageTitle()
-                        this.keyword = this.$route.query.keyword
+                        this.keyword = this.$route.query.keyword || ''
                     }
                     else {
                         this.reset()
-                        this.keyword = this.$route.query.keyword
+                        this.keyword = this.$route.query.keyword || ''
                     }
                 }
             }
@@ -255,7 +244,7 @@ export default defineComponent({
             }
 
             // console.log(data.fullPath);
-            if (data.path.match(/\bworks\b/)) {
+            if (data.path.match(/\bworks\b/) && this.pageActive) {
                 if (data.query.page) {
                     // console.log('currpage', this.currPage);
                     // console.log('lib', data.query.page);

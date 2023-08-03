@@ -9,17 +9,36 @@
                 <q-item>
                     <q-item-section>
                         <div class="text-h6">
-                            <div class="text-h6" v-show="isCalculatingSizeStore">
+                            <div class="text-h6" 
+                                v-show="isCalculatingSizeStore 
+                                && !downloadFailed"
+                            >
                                 Calculating Size 
                             </div>
 
-                            <div class="text-h6" v-show="!isCompletedStore && !isCalculatingSizeStore">
+                            <div class="text-h6" 
+                                v-show="!isCompletedStore 
+                                && !isCalculatingSizeStore 
+                                && !downloadFailed"
+                            >
                                 Downloading
                             </div>
 
-                            <div class="text-h6" v-show="isCompletedStore && !isCalculatingSizeStore">
+                            <div class="text-h6" 
+                                v-show="isCompletedStore 
+                                && !isCalculatingSizeStore 
+                                && !downloadFailed"
+                            >
                                 Finished
                             </div>
+
+                            <div class="text-h6" v-show="downloadFailed">
+                                Failed
+                            </div>
+                        </div>
+
+                        <div v-show="!isCompletedStore && !downloadFailed">
+                            <q-item-label caption lines="1">{{ downloadSpeed }}</q-item-label>
                         </div>
                     </q-item-section>
                     
@@ -47,8 +66,11 @@
                         </q-item-label>
                     </q-item-section>
 
-                    <q-item-section avatar v-if="doneListStore[index] ==='done'">
+                    <q-item-section avatar v-if="doneListStore[index] === 'done'">
                         <q-icon color="green" name="done" />
+                    </q-item-section>
+                    <q-item-section avatar v-else-if="doneListStore[index] === 'failed'">
+                        <q-icon color="red" name="close" />
                     </q-item-section>
                 </q-item>
             </q-list>
@@ -93,7 +115,9 @@ export default {
             'isCompletedStore',
             'isHideDownloadPageStore',
             'isCalculatingSizeStore',
-            'realTimeSizeDoneStore'
+            'realTimeSizeDoneStore',
+            'downloadFailed',
+            'downloadSpeed'
         ])
     },
 

@@ -12,7 +12,7 @@
             </router-link>
           </q-toolbar-title>
 
-          <q-input dark dense rounded standout v-model="keyword" debounce="1000" input-class="text-right" class="q-mr-sm">
+          <q-input dark dense rounded standout v-model="keyword" debounce="1000" input-class="text-right" class="q-mr-sm" @focus="searchFocus" @blur="searchFucusLost">
           <template v-slot:append>
             <q-icon v-if="keyword === ''" name="search" />
             <q-icon v-else name="clear" class="cursor-pointer" @click="keyword = ''" />
@@ -102,9 +102,10 @@
       <!-- <AudioPlayer /> -->
     <q-page-container>
       <!-- <router-view /> -->
-      <router-view v-slot="{ Component }">
+      <!-- :key="this.$route.path" -->
+      <router-view v-slot="{ Component} ">
         <keep-alive exclude="WorkDetail">
-          <component :is="Component" />
+          <component :is="Component"/>
         </keep-alive>
         <q-page-scroller position="bottom-right" :scroll-offset="150" :offset="[18, 18]">
           <q-btn fab icon="keyboard_arrow_up" color="accent" />
@@ -130,6 +131,7 @@ import { useAudioPlayerStore } from '../stores/audioPlayer'
 import DownloadCard from '../components/DownloadCard.vue'
 import AudioPlayer from '../components/AudioPlayer.vue'
 import PlayerBar from '../components/PlayerBar.vue'
+
 
 export default defineComponent({
   name: 'MainLayout',
@@ -164,64 +166,35 @@ export default defineComponent({
           path: '/dashboard'
         }
       ],
+      sFocus: false
     }
   },
 
   watch: {
     keyword() {
-      // sessionStorage.setItem('searchKeyword', this.keyword)
-      // // 
-      // const keyword = sessionStorage.getItem('searchKeyword')
-      // if (keyword) {
-      //   if (this.$route.path.match(/\bworks\b/)) {
-      //     // if (this.$route.query.page) {
-      //     //   console.log('main', this.$route.query.page);
-      //     //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
-      //     // }
-      //     // else {
-      //     //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
-      //     // }
-      //     console.log('main');
-      //     this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
-      //   }
-      // }
-      // else {
-      //   this.$router.push('/works')
-      //   this.keyword = ''
-      //   sessionStorage.removeItem('searchKeyword')
-
-
-      //   // if (this.$route.query.path) {
-      //   //   // console.log('query path exists');
-      //   //   this.$router.push(`${this.$route.fullPath}`)
-      //   // }
-      //   // else {
-      //   //   // console.log('main page: ' + this.$route.fullPath);
-      //   //   if (this.$route.query.page) {
-      //   //     // console.log('main pageNumber', this.$route.query.page);
-      //   //     this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
-      //   //     this.keyword = ''
-      //   //     sessionStorage.removeItem('searchKeyword')
-      //   //   }
-      //   //   else {
-      //   //     this.$router.push(`${this.$route.path}`)
-      //   //     this.keyword = ''
-      //   //     sessionStorage.removeItem('searchKeyword')
-      //   //   }
-          
-      //   // }
-      // }
-
-
+      console.log('keyword', this.keyword);
       sessionStorage.setItem('searchKeyword', this.keyword)
       const keyword = sessionStorage.getItem('searchKeyword')
 
       if (keyword) {
-        if (this.$route.query.page) {
-          console.log('main', this.$route.query.page);
-          this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
+        if (this.$route.path.match(/\bwork\b/) && this.sFocus) {
+          if (this.$route.query.page) {
+            console.log('main', this.$route.query.page);
+            this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
+          }
+          else {
+            this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
+          }
         }
-        else {
+        else if (this.sFocus) {
+          // if (this.$route.query.page) {
+          //   console.log('main', this.$route.query.keyword);
+          //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
+          // }
+          // else {
+          //   // console.log('main', this.$route.query.id);
+          //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
+          // }
           this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
         }
         // this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}&page=1`)
@@ -235,14 +208,19 @@ export default defineComponent({
           // console.log('main page: ' + this.$route.fullPath);
           if (this.$route.query.page) {
             // console.log('main pageNumber', this.$route.query.page);
-            this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
+            this.$router.push(`${this.$route.fullPath}`)
+            // this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
             this.keyword = ''
-            sessionStorage.removeItem('searchKeyword')
+            // sessionStorage.removeItem('searchKeyword')
+            sessionStorage.setItem('searchKeyword', '')
           }
           else {
-            this.$router.push(`${this.$route.path}`)
-            this.keyword = ''
-            sessionStorage.removeItem('searchKeyword')
+            // console.log('path1', this.$route.path);
+            // console.log('path2', this.$route.path);
+            // console.log('run');
+            // this.keyword = ''
+            sessionStorage.setItem('searchKeyword', '')
+            this.$router.push(`/works`)
           }
           
         }
@@ -257,7 +235,7 @@ export default defineComponent({
       else {
         if (!data.path.match(/\bwork\b/)) {
           this.keyword = ''
-          sessionStorage.removeItem('searchKeyword')
+          sessionStorage.setItem('searchKeyword', '')
         }
       }
     }
@@ -314,7 +292,7 @@ export default defineComponent({
 
     back() {
       const historyPathLen = history.length;
-      if (historyPathLen <= 1) {
+      if (historyPathLen <= 2) {
         this.$router.push(`/works`)
       }
       else {
@@ -343,6 +321,16 @@ export default defineComponent({
       else {
         this.$router.push(`/works`)
       }
+    },
+
+    searchFocus() {
+      this.sFocus = true
+      // console.log(this.sFocus);
+    },
+
+    searchFucusLost() {
+      this.sFocus = false
+      // console.log(this.sFocus);
     }
   }
 })

@@ -1,4 +1,3 @@
-
 const routes = [
   {
     path: '/',
@@ -23,5 +22,6 @@ const routes = [
     component: () => import('pages/ErrorNotFound.vue')
   }
 ]
+
 
 export default routes
