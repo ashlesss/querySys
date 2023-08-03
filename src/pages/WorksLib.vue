@@ -191,13 +191,16 @@ export default defineComponent({
             if (query.keyword) {
                 return `/api/query/search/${encodeURIComponent(query.keyword)}?page=${this.currPage}`
             }
+            else if (sessionStorage.getItem('searchKeyword')) {
+                return `/api/query/search/${encodeURIComponent(sessionStorage.getItem('searchKeyword'))}?page=${this.currPage}`
+            }
             else {
                 return `/api/query/works?page=${this.currPage}`
             }
         },
 
         ...mapState(usePageControlStore, [
-            'pageActive'
+            'pageActive',
         ])
     },
 
@@ -206,7 +209,7 @@ export default defineComponent({
             if (this.$route.path.match(/\bworks\b/)) {
                 this.isLoading = true
                 if ((this.$route.query.keyword ? this.$route.query.keyword : '') === this.keyword) {
-                    console.log('keyword not change');
+                    // console.log('keyword not change', this.$route.query.page);
                     this.resetPageTitle()
                 }
                 else {
@@ -455,9 +458,11 @@ export default defineComponent({
             if (!isNaN(Number(this.gotoPage))) {
                 if (this.$route.query.keyword) {
                     this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${this.gotoPage}`)
+                    this.gotoPage = ''
                 }
                 else {
                     this.$router.push(`/works?page=${this.gotoPage}`)
+                    this.gotoPage = ''
                 }
             }
             else {

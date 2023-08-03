@@ -208,7 +208,7 @@ export default defineComponent({
           // console.log('main page: ' + this.$route.fullPath);
           if (this.$route.query.page) {
             // console.log('main pageNumber', this.$route.query.page);
-            this.$router.push(`${this.$route.fullPath}`)
+            this.$router.push(`${this.$route.path}`)
             // this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
             this.keyword = ''
             // sessionStorage.removeItem('searchKeyword')

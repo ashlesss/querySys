@@ -7,7 +7,7 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 3. Create navigation guards that control the activation of pagination/page query to prevent repeat api requests.
 
 ### TODO 
-1. There is still a transition api request cause by `keyword`.
+1. ~~There is still a transition api request cause by `keyword`.~~(Completed, Need more testing)
 
 
 ## 8/1/2023
