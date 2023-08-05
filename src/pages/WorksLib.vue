@@ -94,6 +94,7 @@ import WordCard from '../components/WorkCard.vue';
 import NotifyMixin from '../mixins/Notification.js'
 import { mapState, mapActions } from 'pinia'
 import { usePageControlStore } from '../stores/pageControl'
+import { Input } from 'postcss';
 
 export default defineComponent({
     name: "WorksLib",
@@ -388,19 +389,18 @@ export default defineComponent({
         },
 
         getSearchItem() {
-            const srMatched = this.$route.query.keyword.match(/[^\$\s]+?(?=\$)/g)
-            // console.log(srMatched);
+            // const srMatched = this.$route.query.keyword.match(/\$(va|circle):([^\$\s]+)\$/g)
+            const keyword = this.$route.query.keyword || ''
+            const regex = /\$(va|circle|tag|price|rate|sell):([^\$\s]+)\$/g
+            const srMatched = [...keyword.matchAll(regex)]
             this.searchItems = []
-            if (srMatched) {
-                for (let i = 0; i < srMatched.length; i++) {
-                    this.searchItems.push(
-                        {
-                            name: srMatched[i],
-                            render: true
-                        }
-                    )
-                }
-                // console.log('getSearchItem: SearchItem: ' + this.searchItems.length);
+            if (srMatched.length) {
+                srMatched.forEach(match => {
+                    this.searchItems.push({
+                        name: `${match[1]}:${match[2]}`,
+                        render: true
+                    })
+                })
             }
             else {
                 this.searchItems = []

@@ -1,5 +1,9 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 8/3/2023 
+
+1. Refactor the Regex to detect search tags.
+
 ## 8/2/2023 
 
 1. Optimize api requests caused by component transitions.
