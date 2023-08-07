@@ -191,8 +191,8 @@ export default defineComponent({
             if (query.keyword) {
                 return `/api/query/search/${encodeURIComponent(query.keyword)}?page=${this.currPage}`
             }
-            else if (sessionStorage.getItem('searchKeyword')) {
-                return `/api/query/search/${encodeURIComponent(sessionStorage.getItem('searchKeyword'))}?page=${this.currPage}`
+            else if (this.$q.sessionStorage.getItem('searchKeyword')) {
+                return `/api/query/search/${encodeURIComponent(this.$q.sessionStorage.getItem('searchKeyword'))}?page=${this.currPage}`
             }
             else {
                 return `/api/query/works?page=${this.currPage}`
@@ -229,8 +229,7 @@ export default defineComponent({
         },
 
         sortOption (newSortOptionSetting) {
-            // console.log(newSortOptionSetting);
-            localStorage.sortOption = JSON.stringify(newSortOptionSetting);
+            this.$q.localStorage.set('sortOption', JSON.stringify(newSortOptionSetting))
             this.sortOptionReset();
         },
 
@@ -246,22 +245,12 @@ export default defineComponent({
                 document.title = 'Querysys'
             }
 
-            // console.log(data.fullPath);
             if (data.path.match(/\bworks\b/) && this.pageActive) {
                 if (data.query.page) {
-                    // console.log('currpage', this.currPage);
-                    // console.log('lib', data.query.page);
-                    // this.isLoading = true
                     this.currPage = Number(data.query.page)
-                    // console.log('currpage', this.currPage);
-                    // this.resetPageTitle()
                 }
-                // console.log(data.fullPath);
                 else  {
-                    // this.isLoading = true
                     this.currPage = 1
-                    // console.log('lib currPage', this.currPage);
-                    // this.resetPageTitle()
                 }
             }
         },
@@ -273,11 +262,13 @@ export default defineComponent({
     },
 
     mounted() {
-        if (localStorage.sortOption) {
+
+        if (this.$q.localStorage.getItem('sortOption')) {
             try {
-                this.sortOption = JSON.parse(localStorage.sortOption);
-            } catch {
-                localStorage.removeItem('sortOption');
+                this.sortOption = JSON.parse(this.$q.localStorage.getItem('sortOption'))
+            }
+            catch {
+                this.$q.localStorage.remove('sortOption')
             }
         }
         else {

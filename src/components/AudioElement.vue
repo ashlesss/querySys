@@ -184,8 +184,8 @@ export default {
     },
 
     mounted() {
-        if (localStorage.volume) {
-            this.SET_VOLUME(this.player.volume = localStorage.volume);
+        if (this.$q.localStorage.getItem('volume')) {
+            this.SET_VOLUME(this.player.volume = this.$q.localStorage.getItem('volume'));
         }
         else {
             this.SET_VOLUME(this.player.volume = 0.5);

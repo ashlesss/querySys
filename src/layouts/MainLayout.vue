@@ -199,8 +199,10 @@ export default defineComponent({
   watch: {
     keyword() {
       console.log('keyword', this.keyword);
-      sessionStorage.setItem('searchKeyword', this.keyword)
-      const keyword = sessionStorage.getItem('searchKeyword')
+      // sessionStorage.setItem('searchKeyword', this.keyword)
+      // const keyword = sessionStorage.getItem('searchKeyword')
+      this.$q.sessionStorage.set('searchKeyword', this.keyword)
+      const keyword = this.$q.sessionStorage.getItem('searchKeyword')
 
       if (keyword) {
         if (this.$route.path.match(/\bwork\b/) && this.sFocus) {
@@ -237,15 +239,16 @@ export default defineComponent({
             this.$router.push(`${this.$route.path}`)
             // this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
             this.keyword = ''
-            // sessionStorage.removeItem('searchKeyword')
-            sessionStorage.setItem('searchKeyword', '')
+            // sessionStorage.setItem('searchKeyword', '')
+            this.$q.sessionStorage.set('searchKeyword', '')
           }
           else {
             // console.log('path1', this.$route.path);
             // console.log('path2', this.$route.path);
             // console.log('run');
             // this.keyword = ''
-            sessionStorage.setItem('searchKeyword', '')
+            // sessionStorage.setItem('searchKeyword', '')
+            this.$q.sessionStorage.set('searchKeyword', '')
             this.$router.push(`/works`)
           }
           
@@ -256,12 +259,14 @@ export default defineComponent({
     $route(data) {
       if (data.query.keyword) {
         this.keyword = data.query.keyword
-        sessionStorage.setItem('searchKeyword', data.query.keyword)
+        // sessionStorage.setItem('searchKeyword', data.query.keyword)
+        this.$q.sessionStorage.set('searchKeyword', data.query.keyword)
       }
       else {
         if (!data.path.match(/\bwork\b/)) {
           this.keyword = ''
-          sessionStorage.setItem('searchKeyword', '')
+          // sessionStorage.setItem('searchKeyword', '')
+          this.$q.sessionStorage.set('searchKeyword', '')
         }
       }
     }
@@ -270,12 +275,16 @@ export default defineComponent({
 
   mounted() {
     if (this.$route.query.keyword) {
-      sessionStorage.setItem('searchKeyword', this.$route.query.keyword)
+      // sessionStorage.setItem('searchKeyword', this.$route.query.keyword)
+      this.$q.sessionStorage.set('searchKeyword', this.$route.query.keyword)
       this.keyword = this.$route.query.keyword
     }
     else {
-      const keyword = sessionStorage.getItem('searchKeyword')
-      keyword ? this.keyword = keyword : this.keyword = ''
+      // const keyword = sessionStorage.getItem('searchKeyword')
+      // const keyword = this.$q.sessionStorage.getItem('searchKeyword')
+      // keyword ? this.keyword = keyword : this.keyword = ''
+      this.$q.sessionStorage.set('searchKeyword', '')
+      this.keyword = ''
       
     }
   },
@@ -335,8 +344,8 @@ export default defineComponent({
       }
       else {
         if (this.$route.query.path) {
-          if (sessionStorage.getItem('searchKeyword')) {
-            this.$router.push(`/works?keyword=${sessionStorage.getItem('searchKeyword')}&page=${this.currPageStore}`)
+          if (this.$q.sessionStorage.getItem('searchKeyword')) {
+            this.$router.push(`/works?keyword=${this.$q.sessionStorage.getItem('searchKeyword')}&page=${this.currPageStore}`)
           }
           else {
             this.$router.push(`/works?page=${this.currPageStore}`)

@@ -21,8 +21,6 @@
 </template>
 <script>
 import NotifyMixin from '../mixins/Notification.js'
-import { mapState, mapActions } from 'pinia'
-import { useUserAuthStore } from '../stores/userAuth'
 
 export default {
     name: 'LoginPage',

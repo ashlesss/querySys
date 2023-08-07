@@ -318,7 +318,8 @@ export default {
             },
             set (val) {
                 const fixedVal = Number(val.toFixed(2))
-                localStorage.volume = fixedVal
+                // this.$q.localStorage.volume = fixedVal
+                this.$q.localStorage.set('volume', fixedVal)
                 this.SET_VOLUME(fixedVal)
             }
         },

@@ -5,6 +5,7 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 1. Add login services
 2. Restrict access to other pages other than login page if no valid token presents.
 3. Improve `back` functionality. It is now can go back to same `WorkLib` page where they came from. After they clicked `workTree` in `WorkDetail` page.
+4. Refactor all `localStorage` and `sessionStorage` to use quasar's `localStorage` and `sessionStorage` extensions for better data type conversion experience.
 
 ## 8/3/2023 
 

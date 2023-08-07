@@ -27,7 +27,7 @@
 
 <script>
 import socket from 'socket.io-client'
-const io = socket.io(process.env.SOCKETAPI)
+const io = socket.io(process.env.API)
 
 export default {
   setup () {

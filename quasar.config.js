@@ -60,7 +60,7 @@ module.exports = configure(function (/* ctx */) {
         node: 'node16'
       },
       env: {
-        SOCKETAPI: 'http://localhost:4000'
+        API: 'http://localhost:4000'
       },
 
       vueRouterMode: 'history', // available values: 'hash', 'history'
@@ -121,7 +121,8 @@ module.exports = configure(function (/* ctx */) {
       // Quasar plugins
       plugins: [
         'Notify',
-        'LocalStorage'
+        'LocalStorage',
+        'SessionStorage'
       ]
     },
 
