@@ -36,3 +36,9 @@ progress/
 
 # Ignore test pages
 TestPage.vue
+
+# Ignore localhost CAs
+CA/
+
+# Ignore local .vscode setting
+.vscode/

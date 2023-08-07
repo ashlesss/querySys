@@ -34,6 +34,7 @@ export default route(function (/* { store, ssrContext } */) {
     const store = usePageControlStore()
     if (to.path === '/works') {
       store.pageActive = true
+      store.SET_CURR_PAGE_STORE(to.query.page || 1)
       console.log('pageActived', store.pageActive);
       console.log('router page', to.query.page);
     }

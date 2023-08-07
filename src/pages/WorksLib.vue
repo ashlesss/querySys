@@ -94,7 +94,6 @@ import WordCard from '../components/WorkCard.vue';
 import NotifyMixin from '../mixins/Notification.js'
 import { mapState, mapActions } from 'pinia'
 import { usePageControlStore } from '../stores/pageControl'
-import { Input } from 'postcss';
 
 export default defineComponent({
     name: "WorksLib",
@@ -202,7 +201,7 @@ export default defineComponent({
 
         ...mapState(usePageControlStore, [
             'pageActive',
-        ])
+        ]),
     },
 
     watch: {
@@ -270,7 +269,7 @@ export default defineComponent({
         subtitle() {
             this.isLoading = true
             this.resetPageTitle()
-        },
+        }
     },
 
     mounted() {
@@ -470,9 +469,5 @@ export default defineComponent({
             }
         },
     },
-
-    // created() {
-    //     this.resetPageTitle()
-    // },
 })
 </script>

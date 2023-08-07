@@ -76,34 +76,54 @@
             </q-item>
           </q-list>
 
-          <!-- <div class="fixed-bottom">
+          <div class="fixed-bottom">
             <q-list>
-              <q-item 
-            to="/dashboard"
-            exact
-            clickable 
-            v-ripple>
-              <q-item-section avatar>
-                <q-icon name="dashboard" />
-              </q-item-section>
+              <q-item
+                clickable
+                v-ripple
+                exact
+                active-class="text-deep-purple text-weight-medium"
+                @click="confirm = true"
+                v-if="auth"
+              >
+                <q-item-section avatar>
+                  <q-icon name="exit_to_app" />
+                </q-item-section>
 
-              <q-item-section>
-                Dashboard
-              </q-item-section>
-            </q-item>
+                <q-item-section>
+                  <q-item-label class="text-subtitle1">
+                    Logout
+                  </q-item-label>
+                  <q-item-label caption lines="2">{{ username }}</q-item-label>
+                </q-item-section>
+              </q-item>
             </q-list>
-          </div> -->
+          </div>
 
         </q-scroll-area>
 
       </q-drawer>
+
+      <q-dialog v-model="confirm" persistent>
+        <q-card>
+          <q-card-section class="row items-center">
+            <q-avatar icon="power_settings_new" color="primary" text-color="white" />
+            <span class="q-ml-sm">是否退出登录？（若未开启用户验证，则操作无效）</span>
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn flat label="取消" color="primary" v-close-popup />
+            <q-btn flat label="退出" color="primary" @click="logout()" v-close-popup />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
 
       <DownloadCard />
       <!-- <AudioPlayer /> -->
     <q-page-container>
       <!-- <router-view /> -->
       <!-- :key="this.$route.path" -->
-      <router-view v-slot="{ Component} ">
+      <router-view v-slot="{ Component } ">
         <keep-alive exclude="WorkDetail">
           <component :is="Component"/>
         </keep-alive>
@@ -131,10 +151,15 @@ import { useAudioPlayerStore } from '../stores/audioPlayer'
 import DownloadCard from '../components/DownloadCard.vue'
 import AudioPlayer from '../components/AudioPlayer.vue'
 import PlayerBar from '../components/PlayerBar.vue'
+import { useUserAuthStore } from '../stores/userAuth'
+import NotifyMixin from '../mixins/Notification.js'
+import { usePageControlStore } from '../stores/pageControl'
 
 
 export default defineComponent({
   name: 'MainLayout',
+
+  mixins: [NotifyMixin],
 
   components: {
     DownloadCard,
@@ -166,7 +191,8 @@ export default defineComponent({
           path: '/dashboard'
         }
       ],
-      sFocus: false
+      sFocus: false,
+      confirm: false
     }
   },
 
@@ -242,8 +268,7 @@ export default defineComponent({
 
   },
 
-  created() {
-    // this.$route.query.keyword ? this.keyword = this.$route.query.keyword : ''
+  mounted() {
     if (this.$route.query.keyword) {
       sessionStorage.setItem('searchKeyword', this.$route.query.keyword)
       this.keyword = this.$route.query.keyword
@@ -253,6 +278,10 @@ export default defineComponent({
       keyword ? this.keyword = keyword : this.keyword = ''
       
     }
+  },
+
+  created() {
+    this.initUser()
   },
 
   computed: {
@@ -275,6 +304,15 @@ export default defineComponent({
 
     ...mapState(useAudioPlayerStore, [
       'GET_HIDE'
+    ]),
+
+    ...mapState(useUserAuthStore, [
+      'auth',
+      'username'
+    ]),
+
+    ...mapState(usePageControlStore, [
+      'currPageStore'
     ])
   },
 
@@ -296,7 +334,17 @@ export default defineComponent({
         this.$router.push(`/works`)
       }
       else {
-        this.$router.go(-1)
+        if (this.$route.query.path) {
+          if (sessionStorage.getItem('searchKeyword')) {
+            this.$router.push(`/works?keyword=${sessionStorage.getItem('searchKeyword')}&page=${this.currPageStore}`)
+          }
+          else {
+            this.$router.push(`/works?page=${this.currPageStore}`)
+          }
+        }
+        else {
+          this.$router.go(-1)
+        }
       }
     },
 
@@ -331,7 +379,45 @@ export default defineComponent({
     searchFucusLost() {
       this.sFocus = false
       // console.log(this.sFocus);
-    }
+    },
+
+    ...mapActions(useUserAuthStore, [
+      'SET_AUTH',
+      'INIT',
+      'ON_LOGOUT'
+    ]),
+
+    initUser() {
+      this.$axios.get('/api/auth/me')
+      .then(res => {
+        this.INIT(res.data)
+        this.SET_AUTH(res.data.auth)
+      })
+      .catch(err => {
+        if (err.response) {
+          if (err.response.status === 401) {
+            const path = this.$route.path
+            if (!path.match(/\blogin\b/)) {
+              this.$router.push('/login')
+              console.log('pushed');
+            }
+          }
+          else {
+            this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`)
+          }
+        }
+        else {
+          this.showErrNotif(err.message || err)
+        }
+      })
+    },
+
+    logout () {
+      this.$q.localStorage.set('jwt-token', '')
+      this.$setAxiosHeader('')
+      this.ON_LOGOUT()
+      this.$router.push('/login')
+    },
   }
 })
 </script>

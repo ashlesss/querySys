@@ -5,12 +5,17 @@ const routes = [
     children: [
       { path: '', redirect: { name: 'works' }},
       // { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: 'works', name:'works', component: () => import('pages/WorksLib.vue') },
-      { path: 'QueryMain', component: () => import('pages/QueryMain.vue') },
+      { path: 'works', name:'works', component: () => import('pages/WorksLib.vue')},
+      { path: 'QueryMain', component: () => import('pages/QueryMain.vue')},
       { path: 'work/:id', name: 'WorkDetail' ,component: () => import('pages/WorkDetail.vue')},
       { path: 'dashboard', component: () => import('pages/DashBoard.vue')},
       { path: 'testpage', component: () => import('pages/TestPage.vue')}
     ]
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('pages/LoginPage.vue')
   },
 
   // Always leave this as last one,

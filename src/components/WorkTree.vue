@@ -245,7 +245,8 @@ export default{
             // const token = this.$q.localStorage.getItem('jwt-token') || '';
             // Fallback to old API for an old backend 
             // const url = file.mediaStreamUrl ? `${file.mediaStreamUrl}?token=${token}` : `/api/media/stream/${file.hash}?token=${token}`;
-            const url = file.mediaStreamUrl ? `${file.mediaStreamUrl}` : `/api/media/stream${file.hash}`
+            const token = this.$q.localStorage.getItem('jwt-token') || '';
+            const url = file.mediaStreamUrl ? `${file.mediaStreamUrl}?token=${token}` : `/api/media/stream${file.hash}?token=${token}`
             const link = document.createElement('a');
             link.href = url;
             link.target="_blank";
@@ -256,11 +257,13 @@ export default{
             // const token = this.$q.localStorage.getItem('jwt-token') || '';
             // Fallback to old API for an old backend 
             // const url = file.mediaDownloadUrl ? `${file.mediaDownloadUrl}?token=${token}` : `/api/media/download/${file.hash}?token=${token}`;
-            const url = file.mediaStreamUrl ? `${file.mediaStreamUrl}` : `/api/media/stream${file.hash}`
+            // const token = this.$q.localStorage.getItem('jwt-token') ? `?token=${this.$q.localStorage.getItem('jwt-token')}` : ''
+            const token = this.$q.localStorage.getItem('jwt-token') || '';
+            const url = file.mediaDownloadUrl ? `${file.mediaDownloadUrl}?token=${token}` : `/api/media/download${file.hash}?token=${token}`
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', file.title)
             link.target="_blank";
+            // link.setAttribute('download', file.title)
             link.click();
 
         },
@@ -339,11 +342,12 @@ export default{
 
         async downloadAndSaveFile(url, fileHandle, fileName) {
             let speedReportInterval
+            const header = {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Authorization': this.$q.localStorage.getItem('jwt-token') 
+                    ? `Bearer ${this.$q.localStorage.getItem('jwt-token')}` : ''
+            }
             try {
-
-                const header = {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: header
@@ -352,57 +356,56 @@ export default{
                 const startTime = Date.now();
                 const contentLength = response.headers.get('Content-Length');
 
-                if (response.ok) {
-                    // Create a writable stream to save the file
-                    const writableStream = await fileHandle.createWritable();
-                    // const writableStream = await createWritable();
+                // Create a writable stream to save the file
+                const writableStream = await fileHandle.createWritable();
+                // const writableStream = await createWritable();
 
-                    // Create a ReadableStream from the response body
-                    const reader = response.body.getReader();
+                // Create a ReadableStream from the response body
+                const reader = response.body.getReader();
 
-                    speedReportInterval = setInterval(() => {
-                        const durationInSeconds = (Date.now() - startTime) / 1000;
-                        const bytesPerSecond = downloaded / durationInSeconds;
-                        this.GET_DOWNLOAD_SPEED(bytesPerSecond)
+                speedReportInterval = setInterval(() => {
+                    const durationInSeconds = (Date.now() - startTime) / 1000;
+                    const bytesPerSecond = downloaded / durationInSeconds;
+                    this.GET_DOWNLOAD_SPEED(bytesPerSecond)
+                    this.GET_REAL_TIME_SIZE(this.calSizeUnit(contentLength, downloaded))
+                }, 500);
+
+                // Start reading the response stream and write the chunks to the file
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        clearInterval(speedReportInterval)
                         this.GET_REAL_TIME_SIZE(this.calSizeUnit(contentLength, downloaded))
-                    }, 500);
-
-                    // Start reading the response stream and write the chunks to the file
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) {
-                            clearInterval(speedReportInterval)
-                            this.GET_REAL_TIME_SIZE(this.calSizeUnit(contentLength, downloaded))
-                            break
-                        }
-                        
-                        downloaded += value.length;
-                        // this.$emit('progress', downloaded)
-                        // this.GET_REAL_TIME_SIZE(downloaded)
-                        // Write the chunk to the file
-                        await writableStream.write(value);
+                        break
                     }
-
-                    // Close the writable stream
-                    await writableStream.close();
-                    return 'success'
+                    
+                    downloaded += value.length;
+                    // this.$emit('progress', downloaded)
+                    // this.GET_REAL_TIME_SIZE(downloaded)
+                    // Write the chunk to the file
+                    await writableStream.write(value);
                 }
-                else {
-                    const retryDownloadStatus = await retryFetching(url, fileHandle, fileName)
-                    if (retryDownloadStatus === 'retry_fatch_success') {
-                        return 'success'
-                    }
-                    else {
-                        return 'failed'
-                    }
-                }
+
+                // Close the writable stream
+                await writableStream.close();
+                return 'success'
             }
             catch(err) {
-                console.log(`ERR: ${fileName}, URL: ${url}, err: ${err}`);
-                if (speedReportInterval) {
-                    clearInterval(speedReportInterval)
+                if (err.response && err.response.status === 401) {
+                    console.error(`${err.response.status} No token provided or token invalided.`);
+                    console.log(`ERR: ${fileName}, URL: ${url}, err: ${err}`);
+                    if (speedReportInterval) {
+                        clearInterval(speedReportInterval)
+                    }
+                    return 'failed'
                 }
-                return 'failed'
+                else {
+                    console.log(`ERR: ${fileName}, URL: ${url}, err: ${err}`);
+                    if (speedReportInterval) {
+                        clearInterval(speedReportInterval)
+                    }
+                    return 'failed'
+                }
             }
         },
 
@@ -457,8 +460,13 @@ export default{
             for (let i = 0; i < files.length; i++) {
                 try {
                     const fileUrl = files[i].mediaDownloadUrl;
+                    const header = {
+                        'Authorization': this.$q.localStorage.getItem('jwt-token') 
+                            ? `Bearer ${this.$q.localStorage.getItem('jwt-token')}` : ''
+                    }
                     const response = await fetch(fileUrl, {
-                        method: 'HEAD'
+                        method: 'HEAD',
+                        headers: header
                     })
                     const contentLength = response.headers.get('Content-Length');
                     // console.log(contentLength);
@@ -470,46 +478,6 @@ export default{
                 catch(err) {
                     console.log(err);
                 }
-            }
-        },
-
-        async retryFetching(url, fileHandle, fileName) {
-            try {
-                console.log('Previous fetch failed, retrying.');
-                const response = await fetch(url);
-                let downloaded = 0;
-
-                if (response.ok) {
-                    // Create a writable stream to save the file
-                    const writableStream = await fileHandle.createWritable();
-                    // const writableStream = await createWritable();
-
-                    // Create a ReadableStream from the response body
-                    const reader = response.body.getReader();
-
-                    // Start reading the response stream and write the chunks to the file
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break
-                        
-                        downloaded += value.length;
-                        // this.$emit('progress', downloaded)
-                        this.GET_REAL_TIME_SIZE(downloaded)
-                        // Write the chunk to the file
-                        await writableStream.write(value);
-                    }
-
-                    // Close the writable stream
-                    await writableStream.close();
-                    return 'retry_fatch_success'
-                }
-                else {
-                    throw Error(`Can't get file on retry, file: ${fileName}`)
-                }
-            }
-            catch(err) {
-                console.log(`ERR: ${fileName}, URL: ${url}, err: ${err}`);
-                throw Error(`Retry fetch file failed`)
             }
         },
 

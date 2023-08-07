@@ -96,7 +96,12 @@ module.exports = configure(function (/* ctx */) {
         '/api': {
           target: 'http://localhost:4000',
         },
-      }
+      },
+      // https: {
+      //   key: "/root/querySys/CA/example.com+2-key.pem",
+      //   cert: "/root/querySys/CA/example.com+2.pem",
+      //   ca: "/root/querySys/CA/rootCA.pem",
+      // },
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework
@@ -115,7 +120,8 @@ module.exports = configure(function (/* ctx */) {
 
       // Quasar plugins
       plugins: [
-        'Notify'
+        'Notify',
+        'LocalStorage'
       ]
     },
 

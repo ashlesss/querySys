@@ -42,11 +42,12 @@ export default {
 
         source() {
             if (this.currentPlayingFile.mediaStreamUrl) {
-                // console.log('mediaStreamUrl', this.currentPlayingFile.mediaStreamUrl);
-                return `${this.currentPlayingFile.mediaStreamUrl}`
+                const token = this.$q.localStorage.getItem('jwt-token') ? `?token=${this.$q.localStorage.getItem('jwt-token')}` : ''
+                return `${this.currentPlayingFile.mediaStreamUrl}${token}`
             } else if (this.currentPlayingFile.hash) {
                 // Fallback to be compatible with old backend
-                return `/api/media/stream/${this.currentPlayingFile.hash}`
+                const token = this.$q.localStorage.getItem('jwt-token') ? `?token=${this.$q.localStorage.getItem('jwt-token')}` : ''
+                return `/api/media/stream/${this.currentPlayingFile.hash}${token}`
             } else {
                 return ""
             }
