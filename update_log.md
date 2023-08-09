@@ -1,5 +1,10 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 8/9/2023
+
+1. Add user `group` info into the auth store.
+2. Add `admin dashboard` which can access by user with **admin** `group`.(Incomplete)
+
 ## 8/6/2023
 
 1. Add login services

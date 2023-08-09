@@ -76,8 +76,7 @@
             </q-item>
           </q-list>
 
-          <div class="fixed-bottom">
-            <q-list>
+          <q-list>
               <q-item
                 clickable
                 v-ripple
@@ -98,7 +97,6 @@
                 </q-item-section>
               </q-item>
             </q-list>
-          </div>
 
         </q-scroll-area>
 
@@ -188,7 +186,7 @@ export default defineComponent({
         {
           title: 'Dashboard',
           icon: 'dashboard',
-          path: '/dashboard'
+          path: '/admin'
         }
       ],
       sFocus: false,
@@ -363,7 +361,7 @@ export default defineComponent({
 
     showDownloadPage() {
       this.SHOW_DOWNLOAD_CARD()
-      console.log(this.seamlessStore);
+      // console.log(this.seamlessStore);
     },
 
     changeKeywordPage() {
@@ -399,7 +397,7 @@ export default defineComponent({
     initUser() {
       this.$axios.get('/api/auth/me')
       .then(res => {
-        this.INIT(res.data)
+        this.INIT(res.data.user)
         this.SET_AUTH(res.data.auth)
       })
       .catch(err => {
@@ -430,3 +428,13 @@ export default defineComponent({
   }
 })
 </script>
+
+<style lang="scss">
+// drawer bottom button
+  aside.q-drawer div.q-scrollarea > div.scroll > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+</style>

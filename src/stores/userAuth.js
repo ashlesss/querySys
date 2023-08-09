@@ -3,7 +3,8 @@ import { defineStore } from 'pinia'
 export const useUserAuthStore = defineStore('userAuth', {
   state: () => ({
     auth: false,
-    username: ''
+    username: '',
+    group: ''
   }),
 
   getters: {
@@ -12,7 +13,8 @@ export const useUserAuthStore = defineStore('userAuth', {
 
   actions: {
     INIT(user) {
-      this.username = user.user.name
+      this.username = user.name
+      this.group = user.group
     },
 
     SET_AUTH(status) {
@@ -20,7 +22,8 @@ export const useUserAuthStore = defineStore('userAuth', {
     },
 
     ON_LOGOUT() {
-      this.username = ''
+      this.username = '',
+      this.group = ''
     }
   }
 })

@@ -13,6 +13,14 @@ const routes = [
     ]
   },
   {
+    path: '/admin',
+    component: () => import('layouts/DashboardLayout.vue'),
+    children: [
+      { path: '', component: () => import('pages/dashboard/VoiceFolders.vue')},
+      { path: '/admin/scanner', component: () => import('pages/DashBoard.vue')}
+    ]
+  },
+  {
     path: '/login',
     name: 'login',
     component: () => import('pages/LoginPage.vue')
