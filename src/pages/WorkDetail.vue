@@ -31,6 +31,7 @@ const { getScrollTarget, setVerticalScrollPosition } = scroll
 // import DownloadCard from '../components/DownloadCard.vue'
 import { mapState, mapActions } from 'pinia'
 import { useDownloadCardStore } from '../stores/downloadCard'
+import { useSubtitleFiles } from '../stores/subtitleFiles'
 
 export default defineComponent({
     name: "WorkDetail",
@@ -83,7 +84,7 @@ export default defineComponent({
             'isCompletedStore',
             'isHideDownloadPageStore',
             'isCalculatingSizeStore'
-        ])
+        ]),
     },
 
     methods: {
@@ -102,11 +103,15 @@ export default defineComponent({
             'GET_CURR_JOB_INDEX'
         ]),
 
+        ...mapActions(useSubtitleFiles, [
+            'SAVE_SUB_FILES'
+        ]),
+
         requestWorkData() {
             this.$axios
             .get(`/api/query/work/${this.$route.params.id}`)
             .then(res => {
-                if (res.data.message === 'workNotFound') {
+                if (!res.data.rj_code) {
                     this.$router.push('/404')
                 }
                 else {
@@ -127,6 +132,12 @@ export default defineComponent({
             .get(`/api/query/tracks/${this.$route.params.id}`)
             .then(res => {
                 this.tree = res.data
+                const subtitles = []
+                for (let file of this.tree) {
+                    this.extractSubtitleFile(file, '', subtitles)
+                }
+                this.SAVE_SUB_FILES(subtitles)
+
             })
             .catch(err => {
                 if (err.response) {
@@ -155,6 +166,25 @@ export default defineComponent({
             // const duration = 1000
             setVerticalScrollPosition(target, offset)
         },
+
+        extractSubtitleFile(entry, currentPath, result) {
+            const newPath = currentPath ? currentPath + '/' + (entry.title ? entry.title : entry.folderDirName) : (entry.title ? entry.title : entry.folderDirName);
+            
+            if (entry.type === 'folder') {
+
+                for (const child of entry.children) {
+                    this.extractSubtitleFile(child, newPath, result);
+                }
+            } else if (entry.type === 'text') {
+                if (entry.title.substring(entry.title.lastIndexOf(".")) !== '.txt')
+                    result.push({
+                        title: entry.title, 
+                        mediaStreamUrl: entry.mediaStreamUrl, 
+                        mediaDownloadUrl: entry.mediaDownloadUrl,
+                        duration: entry.duration
+                    });
+            }
+        }
     }
 })
 </script>

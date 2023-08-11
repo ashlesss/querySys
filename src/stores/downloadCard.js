@@ -115,19 +115,19 @@ export const useDownloadCardStore = defineStore('downloadcard', {
     GET_DOWNLOAD_SPEED(speed) {
       if (speed < 1024) {
         this.downloadSpeed = `${speed.toFixed(2)} bytes/s`
-        console.log(`Download speed: ${this.downloadSpeed} bytes/s`);
+        // console.log(`Download speed: ${this.downloadSpeed} bytes/s`);
       }
       else if (speed < 1048576) {
         this.downloadSpeed = `${(speed / 1024).toFixed(2)} KB/s`
-        console.log(`Download speed: ${this.downloadSpeed} KB/s`);
+        // console.log(`Download speed: ${this.downloadSpeed} KB/s`);
       }
       else if (speed < 1073741824) {
         this.downloadSpeed = `${(speed / 1048576).toFixed(2)} MB/s`
-        console.log(`Download speed: ${this.downloadSpeed} MB/s`);
+        // console.log(`Download speed: ${this.downloadSpeed} MB/s`);
       }
       else {
         this.downloadSpeed = `${(speed / 1073741824).toFixed(2)} GB/s`
-        console.log(`Download speed: ${this.downloadSpeed} GB/s`);
+        // console.log(`Download speed: ${this.downloadSpeed} GB/s`);
       }
     }
   }

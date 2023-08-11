@@ -1,5 +1,13 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 8/10/2023
+
+1. Be able to calculate how likely does the subtitle file match current play file.
+2. Subtitle is now working
+
+## TODO
+1. Need to find the right moment to reset `subtitleFiles` in store.
+
 ## 8/9/2023
 
 1. Add user `group` info into the auth store.

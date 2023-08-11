@@ -470,7 +470,7 @@ export default{
                     })
                     const contentLength = response.headers.get('Content-Length');
                     // console.log(contentLength);
-                    this.CAL_FILE_SIZE(contentLength)
+                    this.CAL_FILE_SIZE(Number(contentLength))
                     if (i === files.length - 1) {
                         this.SET_IS_CAL_SIZE_FALSE()
                     }

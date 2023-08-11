@@ -133,9 +133,13 @@
           <q-btn fab v-show="fileListStore.length" color="accent" icon="cloud_download" @click="showDownloadPage"/>
         </q-page-sticky>
       </router-view>
+      <!-- <span class="flex flex-center text-grey">
+        TODO
+      </span> -->
     </q-page-container>
 
     <q-footer class="q-pa-none">
+      <LyricsBar />
       <PlayerBar />
     </q-footer>
   </q-layout>
@@ -152,6 +156,7 @@ import PlayerBar from '../components/PlayerBar.vue'
 import { useUserAuthStore } from '../stores/userAuth'
 import NotifyMixin from '../mixins/Notification.js'
 import { usePageControlStore } from '../stores/pageControl'
+import LyricsBar from '../components/LyricsBar.vue'
 
 
 export default defineComponent({
@@ -162,7 +167,8 @@ export default defineComponent({
   components: {
     DownloadCard,
     AudioPlayer,
-    PlayerBar
+    PlayerBar,
+    LyricsBar
   },
 
   data() {

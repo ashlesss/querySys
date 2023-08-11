@@ -4,6 +4,7 @@
             @canplay="onCanPlay()"
             @timeupdate="timeUpdate()"
             @ended="onEnded()"
+            @seeked="onSeeked()"
         >
             <audio controls crossorigin>
                 <source
@@ -17,9 +18,22 @@
 <script>
 import { mapState, mapActions } from 'pinia'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
+import Lyric from 'lrc-file-parser'
+import { useSubtitleFiles } from '../stores/subtitleFiles'
+import levenshtein from 'fast-levenshtein';
+import NotifyMixin from '../mixins/Notification.js'
 
 export default {
     name: 'AudioElement',
+
+    mixins: [NotifyMixin],
+
+    data() {
+        return {
+            lrcObj: null,
+            lrcAvailable: false,
+        }
+    },
 
     computed: {
         ...mapState(useAudioPlayerStore, [
@@ -34,6 +48,10 @@ export default {
             'playMode',
             'queueIndex',
             'volume'
+        ]),
+
+        ...mapState(useSubtitleFiles, [
+            'subtitleFiles'
         ]),
 
         player() {
@@ -60,11 +78,13 @@ export default {
                 // Preload to playable status
                 flag ? this.player.play() : this.player.pause()
             }
+            this.playLrc(flag)
         },
 
         source(url) {
             if (url) {
                 this.player.media.load();
+                this.loadLrcFile()
             }
         },
 
@@ -107,7 +127,8 @@ export default {
             'PAUSE',
             'SET_TRACK',
             'SET_CURRENT_TIME',
-            'SET_VOLUME'
+            'SET_VOLUME',
+            'SET_CURRENT_LYRIC'
         ]),
         
         onCanPlay() {
@@ -173,14 +194,113 @@ export default {
             }
         },
 
-        // onSeeked() {
-        //     if (this.lrcAvailable) {
-        //         this.lrcObj.play(this.player.currentTime * 1000);
-        //         if (!this.playing) {
-        //         this.lrcObj.pause();
-        //         }
-        //     }
-        // },
+        onSeeked() {
+            if (this.lrcAvailable) {
+                this.lrcObj.play(this.player.currentTime * 1000);
+                if (!this.playing) {
+                this.lrcObj.pause();
+                }
+            }
+        },
+
+        playLrc (playStatus) {
+            if (this.lrcAvailable) {
+                if (playStatus) {
+                this.lrcObj.play(this.player.currentTime * 1000);
+                } else {
+                this.lrcObj.pause();
+                }
+            }
+        },
+
+        initLrcObj () {
+            this.lrcObj = new Lyric({
+                onPlay: (line, text) => {
+                    this.SET_CURRENT_LYRIC(text);
+                },
+            })
+        },
+
+        loadLrcFile() {
+            // const fileHash = this.queue[this.queueIndex].hash
+            if (this.subtitleFiles.length) {
+                const lrcFiles = this.subtitleFiles.filter(lrcFile => {
+                    if (lrcFile.title.substring(lrcFile.title.lastIndexOf(".")) === '.lrc') {
+                        return lrcFile
+                    }
+                })
+                // console.log(lrcFiles);
+                const lrcFileWPrc = this.calSamePrc(lrcFiles)
+                // console.log(lrcFileWPrc);
+                const highestPercentage = lrcFileWPrc.reduce((max, obj) => max.percentage > obj.percentage ? max : obj);
+                console.log(highestPercentage);
+                this.$axios.get(highestPercentage.mediaStreamUrl)
+                .then(res => {
+                    if (res.data) {
+                        this.lrcAvailable = true
+                        console.log('Subtitle loaded successful');
+                        this.lrcObj.setLyric(res.data)
+                        if (this.playing) {
+                            this.lrcObj.play(this.player.currentTime * 1000);
+                        }
+                    }
+                    else {
+                        this.showErrNotif('Load subtitle error')
+                        this.lrcAvailable = false;
+                        this.lrcObj.setLyric('');
+                        this.SET_CURRENT_LYRIC('');
+                    }
+                })
+                .catch(err => {
+                    console.error(err)
+                    if (err.response) {
+                        if (err.response.status === 401) {
+                            this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`);
+                        }
+                    }
+                    else {
+                        this.showErrNotif(err.message || err);
+                    }
+                })
+            }
+        },
+
+        calSamePrc(subtitleFiles) {
+            const subFilePrc = subtitleFiles.map(file => {
+                const name1 = file.title.slice(0, file.title.lastIndexOf("."))
+                const currPlayName = this.currentPlayingFile.title.slice(0, this.currentPlayingFile.title.lastIndexOf("."))
+                const distance = levenshtein.get(name1, currPlayName);
+                const maxLength = Math.max(name1.length, currPlayName.length);
+
+                const namePrc = (1 - distance / maxLength) * 100;
+
+                if (file.duration === 'noContent') {
+                    return {
+                    title: file.title,
+                    mediaStreamUrl: file.mediaStreamUrl,
+                    mediaDownloadUrl: file.mediaDownloadUrl,
+                    percentage: namePrc
+                    }
+                }
+                else {
+                    const duration1 = file.duration
+                    const currPlayDuration = this.currentPlayingFile.duration
+                    // console.log(currPlayDuration);
+
+                    const diff = Math.abs(duration1 - currPlayDuration);
+                    const maxLength = Math.max(duration1, currPlayDuration);
+                    const durationPrc = (1 - diff / maxLength) * 100;
+                    const combPrc = (0.8 * durationPrc) + (0.2 * namePrc)
+                    return {
+                        title: file.title,
+                        mediaStreamUrl: file.mediaStreamUrl,
+                        mediaDownloadUrl: file.mediaDownloadUrl,
+                        percentage: combPrc
+                    }
+                }
+            })
+            return subFilePrc
+        },
     },
 
     mounted() {
@@ -190,6 +310,13 @@ export default {
         else {
             this.SET_VOLUME(this.player.volume = 0.5);
         }
+
+        this.initLrcObj()
+        if (this.source) {
+            this.loadLrcFile()
+        }
+
+        // this.loadLrcFile()
     }
 }
 </script>
