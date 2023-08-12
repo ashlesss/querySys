@@ -168,7 +168,7 @@ export default defineComponent({
     DownloadCard,
     AudioPlayer,
     PlayerBar,
-    LyricsBar
+    LyricsBar,
   },
 
   data() {

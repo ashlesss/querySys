@@ -132,11 +132,11 @@ export default defineComponent({
             .get(`/api/query/tracks/${this.$route.params.id}`)
             .then(res => {
                 this.tree = res.data
-                const subtitles = []
-                for (let file of this.tree) {
-                    this.extractSubtitleFile(file, '', subtitles)
-                }
-                this.SAVE_SUB_FILES(subtitles)
+                // const subtitles = []
+                // for (let file of this.tree) {
+                //     this.extractSubtitleFile(file, '', subtitles)
+                // }
+                // this.SAVE_SUB_FILES(subtitles)
 
             })
             .catch(err => {

@@ -87,6 +87,8 @@
 import { mapState, mapActions } from 'pinia'
 import { useDownloadCardStore } from '../stores/downloadCard'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
+// import { useSubtitleFiles } from '../stores/subtitleFiles'
+import levenshtein from 'fast-levenshtein';
 
 export default{
     name: 'WorkTree',
@@ -114,7 +116,6 @@ export default{
             catch(err) {
                 return []
             }
-            
         },
 
         ...mapState(useDownloadCardStore, [
@@ -131,13 +132,31 @@ export default{
             'GET_QUEUE'
         ]),
 
+        // ...mapState(useSubtitleFiles, [
+        //     'subtitleFiles'
+        // ]),
+
         queueLocal() {
             const queueLocal = []
+            const subtitles = []
+            for (let file of this.tree) {
+                this.extractSubtitleFile(file, '', subtitles)
+            }
+            
             this.fatherFolder.forEach(item => {
                 if (item.type === 'audio') {
-                    queueLocal.push(item)
+                    // console.log(subtitles);
+                    if (subtitles.length !== 0) {
+                        const subWPrc = this.calSamePrc(subtitles, item)
+                        item.subtitles = subWPrc
+                        queueLocal.push(item)
+                    }
+                    else {
+                        queueLocal.push(item)
+                    }
                 }
             })
+            // console.log(queueLocal);
             // console.log('queue', queue);
             return queueLocal
         }
@@ -165,6 +184,12 @@ export default{
         catch(err) {
             console.log('No path set on url');
         }
+
+        // const subtitles = []
+        // for (let file of this.tree) {
+        //     this.extractSubtitleFile(file, '', subtitles)
+        // }
+        // this.SAVE_SUB_FILES(this.tree)
     },
 
     methods: {
@@ -188,7 +213,12 @@ export default{
             'PLAY_NEXT',
             'ADD_TO_QUEUE',
             'PLAY',
+            'SET_SUB_FILES'
         ]),
+
+        // ...mapActions(useSubtitleFiles, [
+        //     'SAVE_SUB_FILES'
+        // ]),
 
         getUserPlatform() {
             if (this.userAgent.includes('Win')) {
@@ -220,9 +250,48 @@ export default{
                 this.SET_QUEUE({
                     queue: this.queueLocal.concat(),
                     index: this.queueLocal.findIndex(file => file.hash === item.hash),
-                    resetPlaying: true
+                    resetPlaying: true,
                 })
             }
+        },
+
+        calSamePrc(subtitleFiles, currentFile) {
+            const subFilePrc = subtitleFiles.map(file => {
+                const name1 = file.title.slice(0, file.title.lastIndexOf("."))
+                const currPlayName = currentFile.title.slice(0, currentFile.title.lastIndexOf("."))
+                const distance = levenshtein.get(name1, currPlayName);
+                const maxLength = Math.max(name1.length, currPlayName.length);
+
+                const namePrc = (1 - distance / maxLength) * 100;
+
+                if (file.duration === 'noContent') {
+                    return {
+                    title: file.title,
+                    mediaStreamUrl: file.mediaStreamUrl,
+                    mediaDownloadUrl: file.mediaDownloadUrl,
+                    percentage: namePrc,
+                    duration: -1
+                    }
+                }
+                else {
+                    const duration1 = file.duration
+                    const currPlayDuration = currentFile.duration
+
+                    const diff = Math.abs(duration1 - currPlayDuration);
+                    const maxLength = Math.max(duration1, currPlayDuration);
+                    const durationPrc = (1 - diff / maxLength) * 100;
+                    const combPrc = (0.8 * durationPrc) + (0.2 * namePrc)
+                    return {
+                        title: file.title,
+                        mediaStreamUrl: file.mediaStreamUrl,
+                        mediaDownloadUrl: file.mediaDownloadUrl,
+                        percentage: combPrc,
+                        duration: file.duration
+                    }
+                }
+            })
+            const sortedPrc = subFilePrc.sort((a, b) => b.percentage - a.percentage)
+            return sortedPrc
         },
 
         onClickPlayButton (hash) {
@@ -482,13 +551,43 @@ export default{
         },
 
         addToQueue (file) {
-            this.ADD_TO_QUEUE(file)
+            const subtitles = []
+            for (let file of this.tree) {
+                this.extractSubtitleFile(file, '', subtitles)
+            }
+
+            const subWPrc = this.calSamePrc(subtitles, file)
+            console.log(subWPrc);
+            if (subWPrc.length !== 0) {
+                file.subtitles = subWPrc
+                this.ADD_TO_QUEUE(file)
+            }
+            else {
+                this.ADD_TO_QUEUE(file)
+            }
+            
         },
         
         playNext (file) {
+            const subtitles = []
+            for (let file of this.tree) {
+                this.extractSubtitleFile(file, '', subtitles)
+            }
+
+            const subWPrc = this.calSamePrc(subtitles, file)
+            console.log(subWPrc);
+
             let arrs = this.GET_QUEUE
-            arrs.splice(this.queueIndex + 1, 0, file);
-            this.PLAY_NEXT(arrs)
+
+            if (subWPrc.length !== 0) {
+                file.subtitles = subWPrc
+                arrs.splice(this.queueIndex + 1, 0, file);
+                this.PLAY_NEXT(arrs)
+            }
+            else {
+                arrs.splice(this.queueIndex + 1, 0, file);
+                this.PLAY_NEXT(arrs)
+            }
         },
 
         calSizeUnit(fileSize, downloaded) {
@@ -503,6 +602,25 @@ export default{
             }
             else {
                 return downloaded / 1073741824
+            }
+        },
+
+        extractSubtitleFile(entry, currentPath, result) {
+            const newPath = currentPath ? currentPath + '/' + (entry.title ? entry.title : entry.folderDirName) : (entry.title ? entry.title : entry.folderDirName);
+            
+            if (entry.type === 'folder') {
+
+                for (const child of entry.children) {
+                    this.extractSubtitleFile(child, newPath, result);
+                }
+            } else if (entry.type === 'text') {
+                if (entry.title.substring(entry.title.lastIndexOf(".")) !== '.txt')
+                    result.push({
+                        title: entry.title, 
+                        mediaStreamUrl: entry.mediaStreamUrl, 
+                        mediaDownloadUrl: entry.mediaDownloadUrl,
+                        duration: entry.duration
+                    });
             }
         }
 

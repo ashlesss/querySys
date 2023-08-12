@@ -2,7 +2,7 @@
     <div>
         <q-slide-transition>
             <q-card square v-show="currentPlayingFile.hash && !this.GET_HIDE" class="fixed-bottom-right bg-white text-black audio-player" @mousewheel.prevent @touchmove.prevent>
-                <div class="bg-dark row items-center albumart">
+                <div class="bg-dark row items-center albumart relative-position">
                     <q-img contain transition="fade" :src="coverUrl" :ratio="4/3"/>
                     <q-btn dense round size="md" color="white" text-color="dark" 
                         icon="keyboard_arrow_down" @click="TOGGLE_HIDE()" class="absolute-top-left q-ma-sm" 
@@ -54,6 +54,13 @@
                             :icon="swapSeekButton ? 'skip_next' : forwardIcon" 
                         />
                     </div>
+
+                    <q-btn dense round size="md" color="white" text-color="dark" 
+                        icon="subtitles" @click="showSubtitleList = !showSubtitleList" 
+                        class="absolute-bottom-right q-ma-sm" 
+                        v-show="haveSubtitle"
+                    />
+                    
                 </div>
 
                 <!-- Player progress bar -->
@@ -200,6 +207,35 @@
                 </q-list>
             </q-card>
         </q-dialog>
+
+        <q-dialog v-model="showSubtitleList">
+            <q-card>
+                <q-card-section>
+                <div class="text-h6">Select subtitle</div>
+                </q-card-section>
+
+                <q-separator />
+
+                <q-list style="max-height: 50vh" class="scroll">
+                    <q-item
+                        clickable
+                        v-ripple
+                        v-for="(subFile, index) in GET_QUEUE_SUB"
+                        :key="index"
+                        :active="this.currentSubtitleIndex === index "
+                        active-class="text-white bg-teal"
+                        class="non-selectable"
+                        style="height: 48px; padding: 0px 10px;"
+                        @click="onClickTrack(index)"
+                    >
+                        <q-item-section>
+                            <q-item-label lines="1">{{ subFile.title }}</q-item-label>
+                            <q-item-label caption lines="1">Same possibilities: {{ subFile.percentage }}</q-item-label>
+                        </q-item-section>
+                    </q-item>
+                </q-list>
+            </q-card>
+        </q-dialog>
     </div>
 </template>
 <script>
@@ -222,7 +258,8 @@ export default {
             editCurrentPlayList: false,
             queueCopy: [],
             hideSeekButton: false,
-            swapSeekButton: false
+            swapSeekButton: false,
+            showSubtitleList: false
         }
     },
 
@@ -257,6 +294,9 @@ export default {
             'GET_VOLUME',
             'GET_QUEUE',
             'queueIndex',
+            'GET_QUEUE_SUB',
+            'currentSubtitleIndex',
+            'haveSubtitle'
         ]),
 
         coverUrl() {
@@ -412,13 +452,10 @@ export default {
         },
 
         samCoverUrl (hash) {
-            return hash ? `/api/static/img/${hash.split('/')[0]}_img_main.jpg` : ""
+            return hash ? `/api/static/img/${hash.split('/')[0]}_img_main.jpg` : ''
         },
 
     },
-
-    created() {
-    }
 }
 </script>
 

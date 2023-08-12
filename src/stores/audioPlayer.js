@@ -13,6 +13,7 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
         hash: null, // unique identifier for the file
         title: null, // title to show in UI
         workTitle: null // workTitle to show in UI
+        subtitles: null // Current playable file's subtitles list
        */
     ],
     queueIndex: 0, // which track in the queue is currently selected
@@ -28,7 +29,9 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
     rewindSeekTime: 5,
     forwardSeekTime: 30,
     rewindSeekMode: false,
-    forwardSeekMode: false
+    forwardSeekMode: false,
+    currentSubtitleIndex: -1,
+    haveSubtitle: false,
   }),
 
   getters: {
@@ -54,6 +57,13 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
 
     GET_QUEUE(state) {
       return state.queue
+    },
+
+    GET_QUEUE_SUB(state) {
+      // const sortedSub = state.queue[this.queueIndex].subtitles
+      //   .sort((a, b) => b.percentage - a.percentage)
+      // return sortedSub
+      return state.queue[this.queueIndex].subtitles
     },
 
   },
@@ -103,7 +113,7 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       if (payload.resetPlaying) {
         this.playing = true
       }
-      // console.log('queueStore', this.queue);
+      console.log('queueStore', this.queue);
     },
     EMPTY_QUEUE () {
       this.playing = false
@@ -204,5 +214,13 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       this.sleepTime = null
       this.sleepMode = false
     },
+
+    SET_CURR_SUB_INDEX(index) {
+      this.currentSubtitleIndex = index
+    },
+
+    SET_HAVE_SUBTITLE(flag) {
+      this.haveSubtitle = flag
+    }
   }
 })

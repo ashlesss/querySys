@@ -1,12 +1,21 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 8/11/2023
+
+1. Add subtitle list to show all related available subtitles for an audio track.
+2. All subtitles that are relative to an audio track is now being store to the `queue` as `subtitles` and will also contain match `percentage` to show the possibility that subtitle is matched with that track.
+
+### TODO
+1. Need to complete logic when selecting different subtitle in subtitle list.
+2. Subtitle format only support `.lrc` now, need to support `.srt`, `.vtt`, and `.ass`.
+
 ## 8/10/2023
 
 1. Be able to calculate how likely does the subtitle file match current play file.
 2. Subtitle is now working
 
 ## TODO
-1. Need to find the right moment to reset `subtitleFiles` in store.
+~~1. Need to find the right moment to reset `subtitleFiles` in store.(Completed)~~
 
 ## 8/9/2023
 

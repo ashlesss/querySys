@@ -6,7 +6,7 @@
             @ended="onEnded()"
             @seeked="onSeeked()"
         >
-            <audio controls crossorigin>
+            <audio crossorigin="anonymous">
                 <source
                     v-if="source"
                     :src="source"
@@ -47,7 +47,8 @@ export default {
             'forwardSeekTime',
             'playMode',
             'queueIndex',
-            'volume'
+            'volume',
+            'currentSubtitleIndex'
         ]),
 
         ...mapState(useSubtitleFiles, [
@@ -60,6 +61,7 @@ export default {
 
         source() {
             if (this.currentPlayingFile.mediaStreamUrl) {
+                // console.log(this.currentPlayingFile.mediaStreamUrl);
                 const token = this.$q.localStorage.getItem('jwt-token') ? `?token=${this.$q.localStorage.getItem('jwt-token')}` : ''
                 return `${this.currentPlayingFile.mediaStreamUrl}${token}`
             } else if (this.currentPlayingFile.hash) {
@@ -77,12 +79,16 @@ export default {
             if (this.player.duration) {
                 // Preload to playable status
                 flag ? this.player.play() : this.player.pause()
+                // this.playLrc(flag)
             }
+            // console.log(this.playing);
             this.playLrc(flag)
         },
 
         source(url) {
             if (url) {
+                // this.onSourceChange()
+                this.resetPlayer()
                 this.player.media.load();
                 this.loadLrcFile()
             }
@@ -115,7 +121,11 @@ export default {
                 this.player.forward(this.forwardSeekTime);
                 this.SET_FORWARD_SEEK_MODE(false);
             }
-        }
+        },
+
+        // queue() {
+        //     console.log(this.queue);
+        // }
     },
 
     methods: {
@@ -128,14 +138,21 @@ export default {
             'SET_TRACK',
             'SET_CURRENT_TIME',
             'SET_VOLUME',
-            'SET_CURRENT_LYRIC'
+            'SET_CURRENT_LYRIC',
+            'SET_CURR_SUB_INDEX',
+            'SET_HAVE_SUBTITLE'
         ]),
+
+        resetPlayer() {
+            this.player.source = null
+            console.log('Player reloaded');
+        },
         
         onCanPlay() {
             this.SET_DURATION(this.player.duration)
 
-            if (this.GET_PLAYING && this.player.currentTime !== this.player.duration) {
-            this.player.play()
+            if (this.playing && this.player.currentTime !== this.player.duration) {
+                this.player.play()
             } 
         },
 
@@ -222,18 +239,19 @@ export default {
         },
 
         loadLrcFile() {
-            // const fileHash = this.queue[this.queueIndex].hash
-            if (this.subtitleFiles.length) {
-                const lrcFiles = this.subtitleFiles.filter(lrcFile => {
+            // console.log(this.currentPlayingFile.subtitles);
+            if (this.currentPlayingFile.subtitles) {
+                const lrcFiles = this.currentPlayingFile.subtitles.filter(lrcFile => {
                     if (lrcFile.title.substring(lrcFile.title.lastIndexOf(".")) === '.lrc') {
                         return lrcFile
                     }
                 })
-                // console.log(lrcFiles);
-                const lrcFileWPrc = this.calSamePrc(lrcFiles)
-                // console.log(lrcFileWPrc);
-                const highestPercentage = lrcFileWPrc.reduce((max, obj) => max.percentage > obj.percentage ? max : obj);
+                const highestPercentage = lrcFiles.reduce((max, obj) => max.percentage > obj.percentage ? max : obj);
                 console.log(highestPercentage);
+                const currSubIndex = lrcFiles.findIndex(item => item.mediaStreamUrl === highestPercentage.mediaStreamUrl)
+                this.SET_CURR_SUB_INDEX(currSubIndex)
+                this.SET_HAVE_SUBTITLE(true)
+                console.log('currentSubtitleIndex', this.currentSubtitleIndex);
                 this.$axios.get(highestPercentage.mediaStreamUrl)
                 .then(res => {
                     if (res.data) {
@@ -262,6 +280,13 @@ export default {
                         this.showErrNotif(err.message || err);
                     }
                 })
+            }
+            else {
+                this.SET_HAVE_SUBTITLE(false)
+                this.lrcAvailable = false;
+                this.lrcObj.setLyric('');
+                this.SET_CURRENT_LYRIC('');
+                this.SET_CURR_SUB_INDEX(-1)
             }
         },
 
@@ -315,8 +340,6 @@ export default {
         if (this.source) {
             this.loadLrcFile()
         }
-
-        // this.loadLrcFile()
     }
 }
 </script>
