@@ -32,6 +32,7 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
     forwardSeekMode: false,
     currentSubtitleIndex: -1,
     haveSubtitle: false,
+    userSetCurrentSubtitleIndex: -1
   }),
 
   getters: {
@@ -119,6 +120,12 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       this.playing = false
       this.queue = []
       this.queueIndex = 0
+      this.currentSubtitleIndex = -1
+      this.haveSubtitle = false,
+      this.userSetCurrentSubtitleIndex = -1
+      this.currentLyric = ''
+      this.currentTime = 0 // second
+      this.duration = 0
     },
     ADD_TO_QUEUE (file) {
       const queue = this.queue
@@ -221,6 +228,11 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
 
     SET_HAVE_SUBTITLE(flag) {
       this.haveSubtitle = flag
+    },
+
+    SET_USER_SELECT_SUB_INDEX(index) {
+      this.userSetCurrentSubtitleIndex = index
+      this.currentSubtitleIndex = index
     }
   }
 })

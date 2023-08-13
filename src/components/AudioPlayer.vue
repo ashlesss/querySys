@@ -216,7 +216,7 @@
 
                 <q-separator />
 
-                <q-list style="max-height: 50vh" class="scroll">
+                <q-list style="max-height: 60vh" class="scroll">
                     <q-item
                         clickable
                         v-ripple
@@ -226,7 +226,7 @@
                         active-class="text-white bg-teal"
                         class="non-selectable"
                         style="height: 48px; padding: 0px 10px;"
-                        @click="onClickTrack(index)"
+                        @click="onClickSubtitle(index)"
                     >
                         <q-item-section>
                             <q-item-label lines="1">{{ subFile.title }}</q-item-label>
@@ -387,7 +387,8 @@ export default {
             'EMPTY_QUEUE',
             'SET_TRACK',
             'REMOVE_FROM_QUEUE',
-            'SET_QUEUE'
+            'SET_QUEUE',
+            'SET_USER_SELECT_SUB_INDEX'
         ]),
 
         openWorkDetail () {
@@ -455,6 +456,9 @@ export default {
             return hash ? `/api/static/img/${hash.split('/')[0]}_img_main.jpg` : ''
         },
 
+        onClickSubtitle(index) {
+            this.SET_USER_SELECT_SUB_INDEX(index)
+        }
     },
 }
 </script>

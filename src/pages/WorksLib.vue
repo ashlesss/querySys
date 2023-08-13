@@ -52,8 +52,8 @@
     <!-- <q-infinite-scroll @load="requestWorks" :offset="250"> -->
     <div class="row q-px-sm q-pt-sm q-col-gutter-x-md q-col-gutter-y-lg">
         <!-- col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2 -->
-        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2" v-for="work in works.works" :key="work.rjcode" > 
-            <WordCard :work="work" class="fit"/> 
+        <div :id="work.rj_code" class="col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2" v-for="(work, index) in works.works" :key="index">
+                <WordCard :work="work" class="fit"/> 
         </div>
     </div>
 

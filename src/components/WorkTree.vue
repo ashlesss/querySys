@@ -1,8 +1,8 @@
 <template>
-    <div class="q-ma-md " style="">
+    <div class="q-ma-md ">
         <q-breadcrumbs gutter="xs" v-if="path.length">
             <q-breadcrumbs-el>
-                <q-btn no-caps flat dense size="md" icon="folder" style="height: 30px;" @click="path = []">ROOT</q-btn>
+                <q-btn no-caps flat dense size="md" icon="folder" style="height: 30px;" @click="emptyPath()">ROOT</q-btn>
             </q-breadcrumbs-el>
             
             <q-breadcrumbs-el v-for="(folderName, index) in path"  :key="index"  class="cursor-pointer" >
@@ -101,6 +101,7 @@ export default{
             userPath: [],
             userAgent: '',
             userPlatform: '',
+            userPathLen: 0
         }
     },
 
@@ -163,10 +164,28 @@ export default{
     },
 
     watch: {
-        path() {
-            // console.log(this.path);
-            this.$emit('path_up', this.path)
-        },
+        // path() {
+        //     // console.log(this.path);
+        //     this.$emit('path_up', this.path)
+        // },
+
+        $route(data) {
+            if (data.query && data.query.path) {
+                // console.log(JSON.parse(data.query.path));
+                const routePath = JSON.parse(data.query.path)
+                // console.log('routePathLen', routePath.length, 'userPathLen', this.userPathLen);
+                if (routePath.length <= this.userPathLen) {
+                    this.path = []
+                    this.userPath = routePath
+                    this.goToUserPath()
+                }
+            }
+            else {
+                this.path = []
+                this.userPath = []
+                this.goToUserPath()
+            }
+        }
     },
 
     mounted() {
@@ -175,21 +194,17 @@ export default{
         try {
             if (JSON.parse(this.goto).length) {
                 this.userPath = JSON.parse(this.goto)
+                this.userPathLen = this.userPath.length
             }
             else {
                 this.userPath = []
+                this.userPathLen = 0
             }
             this.goToUserPath()
         }
         catch(err) {
             console.log('No path set on url');
         }
-
-        // const subtitles = []
-        // for (let file of this.tree) {
-        //     this.extractSubtitleFile(file, '', subtitles)
-        // }
-        // this.SAVE_SUB_FILES(this.tree)
     },
 
     methods: {
@@ -220,6 +235,20 @@ export default{
         //     'SAVE_SUB_FILES'
         // ]),
 
+        // initPath () {
+        //     const initialPath = []
+        //     let fatherFolder = this.tree.concat()
+        //     while (fatherFolder.length === 1) {
+        //         if (fatherFolder[0].type === 'audio') {
+        //         break
+        //         }
+        //         initialPath.push(fatherFolder[0].title)
+        //         fatherFolder = fatherFolder[0].children
+        //     }
+        //     console.log(fatherFolder);
+        //     // this.path = initialPath
+        // },
+
         getUserPlatform() {
             if (this.userAgent.includes('Win')) {
                 this.userPlatform = 'Windows'
@@ -239,6 +268,7 @@ export default{
             if (item.type === 'folder') {
                 this.path.push(item.folderDirName)
                 this.$emit('path_down', this.path)
+                this.userPathLen = this.path.length
             }
             else if (item.type ==='text' || item.type === 'image') {
                 this.openFile(item)
@@ -339,6 +369,12 @@ export default{
 
         onClickBreadcrumb (index) {
             this.path = this.path.slice(0, index+1)
+            this.$emit('path_up', this.path)
+        },
+
+        emptyPath() {
+            this.path = []
+            this.$emit('path_up', this.path)
         },
 
         extractFile(entry, currentPath, result) {

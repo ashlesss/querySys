@@ -22,6 +22,7 @@ import Lyric from 'lrc-file-parser'
 import { useSubtitleFiles } from '../stores/subtitleFiles'
 import levenshtein from 'fast-levenshtein';
 import NotifyMixin from '../mixins/Notification.js'
+import srtParser2 from "srt-parser-2";
 
 export default {
     name: 'AudioElement',
@@ -48,7 +49,8 @@ export default {
             'playMode',
             'queueIndex',
             'volume',
-            'currentSubtitleIndex'
+            'currentSubtitleIndex',
+            'userSetCurrentSubtitleIndex'
         ]),
 
         ...mapState(useSubtitleFiles, [
@@ -126,6 +128,10 @@ export default {
         // queue() {
         //     console.log(this.queue);
         // }
+
+        userSetCurrentSubtitleIndex(index) {
+            this.loadLrcFile(true, index)
+        }
     },
 
     methods: {
@@ -238,48 +244,115 @@ export default {
             })
         },
 
-        loadLrcFile() {
+        loadLrcFile(changeSub = false, index) {
             // console.log(this.currentPlayingFile.subtitles);
             if (this.currentPlayingFile.subtitles) {
-                const lrcFiles = this.currentPlayingFile.subtitles.filter(lrcFile => {
-                    if (lrcFile.title.substring(lrcFile.title.lastIndexOf(".")) === '.lrc') {
-                        return lrcFile
-                    }
-                })
-                const highestPercentage = lrcFiles.reduce((max, obj) => max.percentage > obj.percentage ? max : obj);
-                console.log(highestPercentage);
-                const currSubIndex = lrcFiles.findIndex(item => item.mediaStreamUrl === highestPercentage.mediaStreamUrl)
-                this.SET_CURR_SUB_INDEX(currSubIndex)
-                this.SET_HAVE_SUBTITLE(true)
-                console.log('currentSubtitleIndex', this.currentSubtitleIndex);
-                this.$axios.get(highestPercentage.mediaStreamUrl)
-                .then(res => {
-                    if (res.data) {
-                        this.lrcAvailable = true
-                        console.log('Subtitle loaded successful');
-                        this.lrcObj.setLyric(res.data)
-                        if (this.playing) {
-                            this.lrcObj.play(this.player.currentTime * 1000);
+                if (!changeSub) {
+                    const subFiles = this.currentPlayingFile.subtitles.filter(subFile => {
+                        if (subFile.title.substring(subFile.title.lastIndexOf(".")) === '.lrc' 
+                        || subFile.title.substring(subFile.title.lastIndexOf(".")) === '.srt') {
+                            return subFile
                         }
-                    }
-                    else {
-                        this.showErrNotif('Load subtitle error')
-                        this.lrcAvailable = false;
-                        this.lrcObj.setLyric('');
-                        this.SET_CURRENT_LYRIC('');
-                    }
-                })
-                .catch(err => {
-                    console.error(err)
-                    if (err.response) {
-                        if (err.response.status === 401) {
-                            this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`);
+                    })
+                    const highestPercentage = subFiles.reduce((max, obj) => max.percentage > obj.percentage ? max : obj);
+                    console.log(highestPercentage);
+                    const currSubIndex = subFiles.findIndex(item => item.mediaStreamUrl === highestPercentage.mediaStreamUrl)
+                    this.SET_CURR_SUB_INDEX(currSubIndex)
+                    this.SET_HAVE_SUBTITLE(true)
+                    console.log('currentSubtitleIndex', this.currentSubtitleIndex);
+                    this.$axios.get(highestPercentage.mediaStreamUrl)
+                    .then(res => {
+                        if (res.data) {
+                            this.lrcAvailable = true
+                            if (highestPercentage.title.substring(highestPercentage.title.lastIndexOf('.')) === '.srt') {
+                                const parser = new srtParser2();
+                                const srtArr = parser.fromSrt(res.data);
+                                let lrc = []
+                                srtArr.map(text => {
+                                    const lrcText = `${this.secondsToLrcFormat(text.startSeconds)}${text.text}`
+                                    lrc.push(lrcText)
+                                    const endtime = `${this.secondsToLrcFormat(text.endSeconds)}`
+                                    lrc.push(endtime)
+                                })
+                                const lrcContent = lrc.join('\n');
+                                res.data = lrcContent
+                            }
+                            console.log('Subtitle loaded successful');
+                            this.lrcObj.setLyric(res.data)
+                            if (this.playing) {
+                                this.lrcObj.play(this.player.currentTime * 1000);
+                            }
                         }
-                    }
-                    else {
-                        this.showErrNotif(err.message || err);
-                    }
-                })
+                        else {
+                            this.showErrNotif('Load subtitle error')
+                            this.lrcAvailable = false;
+                            this.lrcObj.setLyric('');
+                            this.SET_CURRENT_LYRIC('');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err)
+                        if (err.response) {
+                            if (err.response.status === 401) {
+                                this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`);
+                            }
+                        }
+                        else {
+                            this.showErrNotif(err.message || err);
+                        }
+                    })
+                }
+                else {
+                    const subUrl = this.currentPlayingFile.subtitles[index].mediaStreamUrl
+                    const subType = this.currentPlayingFile.subtitles[index].title
+                        .substring(this.currentPlayingFile.subtitles[index].title.lastIndexOf('.'))
+                    console.log('subUrl', subUrl)
+                    this.$axios.get(subUrl)
+                    .then(res => {
+                        if (res.data) {
+                            console.log('Load user select subtitle successful');
+                            this.lrcAvailable = true
+                            this.lrcObj.setLyric('');
+                            this.SET_CURRENT_LYRIC('');
+                            if (subType === '.srt') {
+                                const parser = new srtParser2();
+                                const srtArr = parser.fromSrt(res.data);
+                                let lrc = []
+                                srtArr.map(text => {
+                                    const lrcText = `${this.secondsToLrcFormat(text.startSeconds)}${text.text}`
+                                    lrc.push(lrcText)
+                                    const endtime = `${this.secondsToLrcFormat(text.endSeconds)}`
+                                    lrc.push(endtime)
+                                })
+                                const lrcContent = lrc.join('\n');
+                                res.data = lrcContent
+                                // console.log(res.data);
+                            }
+                            this.lrcObj.setLyric(res.data)
+                            if (this.playing) {
+                                this.lrcObj.play(this.player.currentTime * 1000);
+                            }
+                        }
+                        else {
+                            this.showErrNotif('Load selected subtitle error')
+                            this.lrcAvailable = false;
+                            this.lrcObj.setLyric('');
+                            this.SET_CURRENT_LYRIC('');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err)
+                        if (err.response) {
+                            if (err.response.status === 401) {
+                                this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`);
+                            }
+                        }
+                        else {
+                            this.showErrNotif(err.message || err);
+                        }
+                    })
+                }
+                
             }
             else {
                 this.SET_HAVE_SUBTITLE(false)
@@ -326,6 +399,14 @@ export default {
             })
             return subFilePrc
         },
+
+        secondsToLrcFormat(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            const hundredths = Math.floor((seconds - Math.floor(seconds)) * 100);
+
+            return `[${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}]`;
+        }
     },
 
     mounted() {
@@ -339,6 +420,7 @@ export default {
         this.initLrcObj()
         if (this.source) {
             this.loadLrcFile()
+            console.log('User selected subtitle loaded successful');
         }
     }
 }
