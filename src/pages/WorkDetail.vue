@@ -1,23 +1,23 @@
 <template>
-    <div>
+    <!-- Load spinner -->
+    <div class="column justify-center items-center">
+        <q-spinner-dots
+          color="primary"
+          size="3em"
+          v-show="isLoading"
+        />
+        <!-- <q-tooltip :offset="[0, 8]">QSpinnerDots</q-tooltip> -->
+    </div>
+
+    <div v-show="!isLoading" id="workDetail">
         <WorkDetailPage v-if="workInfo.work_title" :workInfo="workInfo"/>
         <div id="scrollTo"></div>
         <WorkTree @click="scrollToElement" 
             :tree="tree" 
             @path_down="pathDown" 
             @path_up="pathUp" 
-            :goto="goToPath" 
+            :goto="goToPath"
         />
-
-        <!-- <DownloadCard 
-            :fileList="fileList"
-            :doneList="doneList"
-            :fileSizeList="fileSizeList"
-            :progressVal="progressVal"
-            :isReset="isReset"
-            :isCompleted="isCompleted"
-            :isHideDownloadPage="isHideDownloadPage"
-        /> -->
     </div>
 </template>
 
@@ -27,7 +27,7 @@ import WorkDetailPage from '../components/WorkDetailPage.vue';
 import WorkTree from '../components/WorkTree.vue'
 import NotifyMixin from '../mixins/Notification.js'
 import { scroll } from 'quasar'
-const { getScrollTarget, setVerticalScrollPosition } = scroll
+const { getScrollTarget, setVerticalScrollPosition, getVerticalScrollPosition } = scroll
 // import DownloadCard from '../components/DownloadCard.vue'
 import { mapState, mapActions } from 'pinia'
 import { useDownloadCardStore } from '../stores/downloadCard'
@@ -53,7 +53,9 @@ export default defineComponent({
             workInfo: {},
             tree: [],
             isReset: true,
-            userCancel: false
+            userCancel: false,
+            isLoading: false,
+            currWorkId: this.$route.params.id || '',
         }
     },
 
@@ -62,6 +64,15 @@ export default defineComponent({
             this.USER_CANCEL()
             this.userCancel = false
         },
+
+        $route(data) {
+            if (data.params && data.params.id && this.currWorkId !== data.params.id) {
+                this.currWorkId = data.params.id
+                this.tree = []
+                this.workInfo = {}
+                this.requestWorkData()
+            }
+        }
     },
 
     computed: {
@@ -108,22 +119,27 @@ export default defineComponent({
         ]),
 
         requestWorkData() {
+            this.isLoading = true
             this.$axios
             .get(`/api/query/work/${this.$route.params.id}`)
             .then(res => {
                 if (!res.data.rj_code) {
+                    this.isLoading = false
                     this.$router.push('/404')
                 }
                 else {
                     this.workInfo = res.data
                     document.title = res.data.rj_code + ' ' + res.data.work_title
+                    this.isLoading = false
                 }
             })
             .catch(err => {
                 if (err.response) {
+                    this.isLoading = false
                     this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`)
                 }
                 else {
+                    this.isLoading = false
                     this.showErrNotif(err.message || err)
                 }
             })
@@ -132,12 +148,6 @@ export default defineComponent({
             .get(`/api/query/tracks/${this.$route.params.id}`)
             .then(res => {
                 this.tree = res.data
-                // const subtitles = []
-                // for (let file of this.tree) {
-                //     this.extractSubtitleFile(file, '', subtitles)
-                // }
-                // this.SAVE_SUB_FILES(subtitles)
-
             })
             .catch(err => {
                 if (err.response) {
@@ -166,25 +176,6 @@ export default defineComponent({
             // const duration = 1000
             setVerticalScrollPosition(target, offset)
         },
-
-        extractSubtitleFile(entry, currentPath, result) {
-            const newPath = currentPath ? currentPath + '/' + (entry.title ? entry.title : entry.folderDirName) : (entry.title ? entry.title : entry.folderDirName);
-            
-            if (entry.type === 'folder') {
-
-                for (const child of entry.children) {
-                    this.extractSubtitleFile(child, newPath, result);
-                }
-            } else if (entry.type === 'text') {
-                if (entry.title.substring(entry.title.lastIndexOf(".")) !== '.txt')
-                    result.push({
-                        title: entry.title, 
-                        mediaStreamUrl: entry.mediaStreamUrl, 
-                        mediaDownloadUrl: entry.mediaDownloadUrl,
-                        duration: entry.duration
-                    });
-            }
-        }
     }
 })
 </script>

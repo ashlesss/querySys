@@ -89,6 +89,8 @@ import { useDownloadCardStore } from '../stores/downloadCard'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
 // import { useSubtitleFiles } from '../stores/subtitleFiles'
 import levenshtein from 'fast-levenshtein';
+import { scroll } from 'quasar'
+const { getScrollTarget, setVerticalScrollPosition } = scroll
 
 export default{
     name: 'WorkTree',
@@ -658,7 +660,7 @@ export default{
                         duration: entry.duration
                     });
             }
-        }
+        },
 
     }
 }

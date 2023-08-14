@@ -1,5 +1,14 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 8/14/2023
+
+1. Subtitle type is now support `.lrc`, `.srt`, `.ass`, `.vtt`.
+2. Pause subtitle when player is buffering data due to slow network.
+3. Preserve previous scroll position when users get back to previous page using default back button on browser.
+4. Remove underscore on some clickable elements.
+5. Use hash `#` to relocate to previous users visited position.
+6. Add `Random Play` feature.
+
 ## 8/13/2023
 
 1. Subtitle is now will change if users selected/changed on subtitle list.
@@ -17,7 +26,7 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 
 ### TODO
 ~~1. Need to complete logic when selecting different subtitle in subtitle list.~~(Completed)
-2. Subtitle format only support `.lrc` now, need to support ~~`.srt`~~, `.vtt`, and `.ass`.
+~~1. Subtitle format only support `.lrc` now, need to support `.srt`, `.vtt`, and `.ass`.~~(Completed)
 
 ## 8/10/2023
 
@@ -154,7 +163,7 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 1. ~~Add sorting options on main page.~~(Completed)
 2. ~~Add audio player.~~(Completed)
 3. Add multi-language support.(Delayed)
-4. Add random play option.
+~~4. Add random play option.~~(Completed)
 
 ## 7/15/2023
 
@@ -162,4 +171,4 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 2. `WorksLib` page `WorkCard` and `WorkDetailPage` components are working correctly.
 
 ### TODO 
-1. Fix `QueryMain` and Query`Result pages or deprecate them.
+~~1. Fix `QueryMain` and Query`Result pages or deprecate them.~~(Deprecated)

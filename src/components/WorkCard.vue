@@ -63,9 +63,11 @@
       <!-- tags -->
       <div class="q-ma-xs">
         <router-link v-for="(tag, index) in work.tags.tags"
-        v-show="tag.tag_name"
-        :key="index"
-        :to="`/works?keyword=${encodeURIComponent(`$tag:` + tag.tag_name + `$`)}`">
+          v-show="tag.tag_name"
+          :key="index"
+          :to="`/works?keyword=${encodeURIComponent(`$tag:` + tag.tag_name + `$`)}`"
+          style="text-decoration: none"
+        >
           <q-chip
             :class="$q.dark.isActive ? '' : 'shadow-2'"
             :color="$q.dark.isActive ? 'grey-9' : 'grey-4'"
@@ -78,9 +80,11 @@
       <!-- VAs -->
       <div class="q-mx-xs q-my-sm">
         <router-link
-        v-for="(va, index) in work.vas.vas"
-        :key="index"
-        :to="`/works?keyword=${encodeURIComponent(`$va:` + va.va_name + `$`)}`">
+          v-for="(va, index) in work.vas.vas"
+          :key="index"
+          :to="`/works?keyword=${encodeURIComponent(`$va:` + va.va_name + `$`)}`"
+          style="text-decoration: none"
+        >
           <q-chip 
           square size="md" 
           class="shadow-2" 

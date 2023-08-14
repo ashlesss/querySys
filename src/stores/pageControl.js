@@ -3,8 +3,10 @@ import { defineStore } from 'pinia'
 export const usePageControlStore = defineStore('pageControl', {
   state: () => ({
     pageActive: false,
-    currPageStore: 1,
-    loggerEnable: true
+    currPageStore: undefined,
+    loggerEnable: true,
+    firstRandom: true,
+    firstRandomRJ: ''
   }),
 
   getters: {
@@ -13,8 +15,16 @@ export const usePageControlStore = defineStore('pageControl', {
 
   actions: {
     SET_CURR_PAGE_STORE(page) {
-      this.currPageStore = Number(page)
+      this.currPageStore = page
       console.log('currPageStore', this.currPageStore);
     },
+
+    SET_FIRST_RAND(status) {
+      this.firstRandom = status
+    },
+
+    SET_FIRST_RAND_RJ(rjcode) {
+      this.firstRandomRJ = rjcode
+    }
   }
 })

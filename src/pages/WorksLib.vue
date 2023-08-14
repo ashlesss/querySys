@@ -45,7 +45,7 @@
           size="3em"
           v-show="isLoading"
         />
-        <q-tooltip :offset="[0, 8]">QSpinnerDots</q-tooltip>
+        <!-- <q-tooltip :offset="[0, 8]">QSpinnerDots</q-tooltip> -->
     </div>
 
     <!-- Works -->

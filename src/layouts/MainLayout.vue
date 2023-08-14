@@ -61,17 +61,35 @@
             </q-item>
 
             <q-item
-            clickable
-            v-ripple
-            @click="toggleDark"
-          >
-            <q-item-section avatar>
-              <q-icon :name="isDarkActive ? 'sunny' : 'dark_mode'" />
-            </q-item-section>
+              clickable
+              v-ripple
+              exact
+              active-class="text-deep-purple text-weight-medium"
+              @click="randomPlay"
+            >
+              <q-item-section avatar>
+                <q-icon name="shuffle" />
+              </q-item-section>
 
-            <q-item-section class="text-subtitle1">
-                Dark mode
-            </q-item-section>
+              <q-item-section>
+                <q-item-label class="text-subtitle1">
+                  Random Play
+                </q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              clickable
+              v-ripple
+              @click="toggleDark"
+            >
+              <q-item-section avatar>
+                <q-icon :name="isDarkActive ? 'sunny' : 'dark_mode'" />
+              </q-item-section>
+
+              <q-item-section class="text-subtitle1">
+                  Dark mode
+              </q-item-section>
 
             </q-item>
           </q-list>
@@ -295,6 +313,13 @@ export default defineComponent({
 
   created() {
     this.initUser()
+    // const now = new Date()
+    // const hours = now.getHours();
+    // console.log(hours);
+    // if (hours >= 19 || hours < 11) {
+    //   console.log('night');
+    //   this.toggleDark()
+    // }
   },
 
   computed: {
@@ -325,11 +350,18 @@ export default defineComponent({
     ]),
 
     ...mapState(usePageControlStore, [
-      'currPageStore'
+      'currPageStore',
+      'firstRandom',
+      'firstRandomRJ'
     ])
   },
 
   methods: {
+    ...mapActions(usePageControlStore, [
+      'SET_FIRST_RAND',
+      'SET_FIRST_RAND_RJ'
+    ]),
+
     toggleDark() {
       if (this.$q.dark.isActive == false && this.$q.dark.mode == false) {
         this.$q.dark.set(true);
@@ -349,10 +381,32 @@ export default defineComponent({
       else {
         if (this.$route.query.path) {
           if (this.$q.sessionStorage.getItem('searchKeyword')) {
-            this.$router.push(`/works?keyword=${this.$q.sessionStorage.getItem('searchKeyword')}&page=${this.currPageStore}`)
+            this.$router.push(`/works?keyword=${encodeURIComponent(this.$q.sessionStorage
+              .getItem('searchKeyword'))}${this.currPageStore ? 
+              `&page=${this.currPageStore}` : ''}${this.$route.params.id 
+              ? `#${this.$route.params.id}` : ''}`)
           }
           else {
-            this.$router.push(`/works?page=${this.currPageStore}`)
+            this.$router.push(`/works${this.currPageStore 
+              ? `?page=${this.currPageStore}` : ''}${this.$route.params.id 
+              ? `#${this.$route.params.id}` : ''}`)
+          }
+        }
+        else if (this.$route.params.id && !this.firstRandom) {
+          if (this.$q.sessionStorage.getItem('searchKeyword')) {
+            this.$router.push(`/works?keyword=${encodeURIComponent(this.$q.sessionStorage
+              .getItem('searchKeyword'))}${this.currPageStore ? 
+              `&page=${this.currPageStore}` : ''}#${this.firstRandomRJ ? 
+              `${this.firstRandomRJ}` : this.$route.params.id}`)
+            this.SET_FIRST_RAND(true)
+            this.SET_FIRST_RAND_RJ('')
+          }
+          else {
+            this.$router.push(`/works${this.currPageStore ? 
+              `?page=${this.currPageStore}` : ''}#${this.firstRandomRJ ? 
+              `${this.firstRandomRJ}` : this.$route.params.id}`)
+            this.SET_FIRST_RAND(true)
+            this.SET_FIRST_RAND_RJ('')
           }
         }
         else {
@@ -431,6 +485,33 @@ export default defineComponent({
       this.ON_LOGOUT()
       this.$router.push('/login')
     },
+
+    randomPlay() {
+      this.$axios.get('/api/query/ramdonPlay')
+      .then(res => {
+        const rjcode = res.data.rj_code
+        if (this.firstRandom) {
+          if (this.$route.params.id) {
+            this.SET_FIRST_RAND_RJ(this.$route.params.id)
+          }
+          // else {
+          //   this.SET_FIRST_RAND_RJ(rjcode)
+          // }
+        }
+        this.SET_FIRST_RAND(false)
+        this.$router.push(`/work/${rjcode}`)
+      })
+      .catch(err => {
+        if (err.response) {
+          if (err.response.status !== 401) {
+            this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`)
+          }
+        }
+        else {
+          this.showErrNotif(err.message || err)
+        }
+      })
+    }
   }
 })
 </script>

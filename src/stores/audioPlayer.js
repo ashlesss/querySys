@@ -114,7 +114,7 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       if (payload.resetPlaying) {
         this.playing = true
       }
-      console.log('queueStore', this.queue);
+      // console.log('queueStore', this.queue);
     },
     EMPTY_QUEUE () {
       this.playing = false

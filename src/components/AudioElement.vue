@@ -5,6 +5,7 @@
             @timeupdate="timeUpdate()"
             @ended="onEnded()"
             @seeked="onSeeked()"
+            @waiting="onWaiting()"
         >
             <audio crossorigin="anonymous">
                 <source
@@ -20,9 +21,10 @@ import { mapState, mapActions } from 'pinia'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
 import Lyric from 'lrc-file-parser'
 import { useSubtitleFiles } from '../stores/subtitleFiles'
-import levenshtein from 'fast-levenshtein';
 import NotifyMixin from '../mixins/Notification.js'
 import srtParser2 from "srt-parser-2";
+import { WebVTTParser } from 'webvtt-parser';
+import { parse } from 'ass-compiler';
 
 export default {
     name: 'AudioElement',
@@ -81,7 +83,6 @@ export default {
             if (this.player.duration) {
                 // Preload to playable status
                 flag ? this.player.play() : this.player.pause()
-                // this.playLrc(flag)
             }
             // console.log(this.playing);
             this.playLrc(flag)
@@ -131,7 +132,7 @@ export default {
 
         userSetCurrentSubtitleIndex(index) {
             this.loadLrcFile(true, index)
-        }
+        },
     },
 
     methods: {
@@ -149,6 +150,11 @@ export default {
             'SET_HAVE_SUBTITLE'
         ]),
 
+        onWaiting() {
+            console.log('waiting and sub paused');
+            this.lrcObj.pause();
+        },
+
         resetPlayer() {
             this.player.source = null
             console.log('Player reloaded');
@@ -159,6 +165,8 @@ export default {
 
             if (this.playing && this.player.currentTime !== this.player.duration) {
                 this.player.play()
+                this.playLrc(this.playing)
+                console.log('lrc playing');
             } 
         },
 
@@ -221,7 +229,7 @@ export default {
             if (this.lrcAvailable) {
                 this.lrcObj.play(this.player.currentTime * 1000);
                 if (!this.playing) {
-                this.lrcObj.pause();
+                    this.lrcObj.pause();
                 }
             }
         },
@@ -229,9 +237,9 @@ export default {
         playLrc (playStatus) {
             if (this.lrcAvailable) {
                 if (playStatus) {
-                this.lrcObj.play(this.player.currentTime * 1000);
+                    this.lrcObj.play(this.player.currentTime * 1000);
                 } else {
-                this.lrcObj.pause();
+                    this.lrcObj.pause();
                 }
             }
         },
@@ -250,7 +258,9 @@ export default {
                 if (!changeSub) {
                     const subFiles = this.currentPlayingFile.subtitles.filter(subFile => {
                         if (subFile.title.substring(subFile.title.lastIndexOf(".")) === '.lrc' 
-                        || subFile.title.substring(subFile.title.lastIndexOf(".")) === '.srt') {
+                        || subFile.title.substring(subFile.title.lastIndexOf(".")) === '.srt'
+                        || subFile.title.substring(subFile.title.lastIndexOf(".")) === '.vtt'
+                        || subFile.title.substring(subFile.title.lastIndexOf(".")) === '.ass') {
                             return subFile
                         }
                     })
@@ -260,97 +270,38 @@ export default {
                     this.SET_CURR_SUB_INDEX(currSubIndex)
                     this.SET_HAVE_SUBTITLE(true)
                     console.log('currentSubtitleIndex', this.currentSubtitleIndex);
-                    this.$axios.get(highestPercentage.mediaStreamUrl)
-                    .then(res => {
-                        if (res.data) {
-                            this.lrcAvailable = true
-                            if (highestPercentage.title.substring(highestPercentage.title.lastIndexOf('.')) === '.srt') {
-                                const parser = new srtParser2();
-                                const srtArr = parser.fromSrt(res.data);
-                                let lrc = []
-                                srtArr.map(text => {
-                                    const lrcText = `${this.secondsToLrcFormat(text.startSeconds)}${text.text}`
-                                    lrc.push(lrcText)
-                                    const endtime = `${this.secondsToLrcFormat(text.endSeconds)}`
-                                    lrc.push(endtime)
-                                })
-                                const lrcContent = lrc.join('\n');
-                                res.data = lrcContent
-                            }
-                            console.log('Subtitle loaded successful');
-                            this.lrcObj.setLyric(res.data)
-                            if (this.playing) {
-                                this.lrcObj.play(this.player.currentTime * 1000);
-                            }
-                        }
-                        else {
-                            this.showErrNotif('Load subtitle error')
-                            this.lrcAvailable = false;
-                            this.lrcObj.setLyric('');
-                            this.SET_CURRENT_LYRIC('');
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err)
-                        if (err.response) {
-                            if (err.response.status === 401) {
-                                this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`);
-                            }
-                        }
-                        else {
-                            this.showErrNotif(err.message || err);
-                        }
-                    })
+                    const subType = highestPercentage.title.substring(highestPercentage.title.lastIndexOf('.'))
+                    const subUrl = highestPercentage.mediaStreamUrl
+                    if (subType === '.lrc') {
+                        this.isLRC(subUrl, changeSub)
+                    }
+                    else if (subType === '.srt') {
+                        this.isSRT(subUrl, changeSub)
+                    }
+                    else if (subType === '.vtt') {
+                        this.isVTT(subUrl, changeSub)
+                    }
+                    else if (subType === '.ass') {
+                        this.isASS(subUrl, changeSub)
+                    }
                 }
                 else {
                     const subUrl = this.currentPlayingFile.subtitles[index].mediaStreamUrl
                     const subType = this.currentPlayingFile.subtitles[index].title
                         .substring(this.currentPlayingFile.subtitles[index].title.lastIndexOf('.'))
-                    console.log('subUrl', subUrl)
-                    this.$axios.get(subUrl)
-                    .then(res => {
-                        if (res.data) {
-                            console.log('Load user select subtitle successful');
-                            this.lrcAvailable = true
-                            this.lrcObj.setLyric('');
-                            this.SET_CURRENT_LYRIC('');
-                            if (subType === '.srt') {
-                                const parser = new srtParser2();
-                                const srtArr = parser.fromSrt(res.data);
-                                let lrc = []
-                                srtArr.map(text => {
-                                    const lrcText = `${this.secondsToLrcFormat(text.startSeconds)}${text.text}`
-                                    lrc.push(lrcText)
-                                    const endtime = `${this.secondsToLrcFormat(text.endSeconds)}`
-                                    lrc.push(endtime)
-                                })
-                                const lrcContent = lrc.join('\n');
-                                res.data = lrcContent
-                                // console.log(res.data);
-                            }
-                            this.lrcObj.setLyric(res.data)
-                            if (this.playing) {
-                                this.lrcObj.play(this.player.currentTime * 1000);
-                            }
-                        }
-                        else {
-                            this.showErrNotif('Load selected subtitle error')
-                            this.lrcAvailable = false;
-                            this.lrcObj.setLyric('');
-                            this.SET_CURRENT_LYRIC('');
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err)
-                        if (err.response) {
-                            if (err.response.status === 401) {
-                                this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`);
-                            }
-                        }
-                        else {
-                            this.showErrNotif(err.message || err);
-                        }
-                    })
+                    console.log('subUrl', subUrl, 'subType', subType)
+                    if (subType === '.lrc') {
+                        this.isLRC(subUrl, changeSub)
+                    }
+                    else if (subType === '.srt') {
+                        this.isSRT(subUrl, changeSub)
+                    }
+                    else if (subType === '.vtt') {
+                        this.isVTT(subUrl, changeSub)
+                    }
+                    else if (subType === '.ass') {
+                        this.isASS(subUrl, changeSub)
+                    }
                 }
                 
             }
@@ -363,49 +314,212 @@ export default {
             }
         },
 
-        calSamePrc(subtitleFiles) {
-            const subFilePrc = subtitleFiles.map(file => {
-                const name1 = file.title.slice(0, file.title.lastIndexOf("."))
-                const currPlayName = this.currentPlayingFile.title.slice(0, this.currentPlayingFile.title.lastIndexOf("."))
-                const distance = levenshtein.get(name1, currPlayName);
-                const maxLength = Math.max(name1.length, currPlayName.length);
-
-                const namePrc = (1 - distance / maxLength) * 100;
-
-                if (file.duration === 'noContent') {
-                    return {
-                    title: file.title,
-                    mediaStreamUrl: file.mediaStreamUrl,
-                    mediaDownloadUrl: file.mediaDownloadUrl,
-                    percentage: namePrc
-                    }
-                }
-                else {
-                    const duration1 = file.duration
-                    const currPlayDuration = this.currentPlayingFile.duration
-                    // console.log(currPlayDuration);
-
-                    const diff = Math.abs(duration1 - currPlayDuration);
-                    const maxLength = Math.max(duration1, currPlayDuration);
-                    const durationPrc = (1 - diff / maxLength) * 100;
-                    const combPrc = (0.8 * durationPrc) + (0.2 * namePrc)
-                    return {
-                        title: file.title,
-                        mediaStreamUrl: file.mediaStreamUrl,
-                        mediaDownloadUrl: file.mediaDownloadUrl,
-                        percentage: combPrc
-                    }
-                }
-            })
-            return subFilePrc
-        },
-
         secondsToLrcFormat(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             const hundredths = Math.floor((seconds - Math.floor(seconds)) * 100);
 
             return `[${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}]`;
+        },
+
+        isLRC(subUrl, changeSub) {
+            this.$axios.get(subUrl)
+            .then(res => {
+                if (res.data) {
+                    if (changeSub) {
+                        console.log('Selected LRC loaded successful');
+                        this.lrcAvailable = true
+                        this.lrcObj.setLyric('')
+                        this.SET_CURRENT_LYRIC('')
+                    }
+                    else {
+                        this.lrcAvailable = true
+                        console.log('LRC loaded successful');
+                        this.lrcObj.setLyric('')
+                        this.SET_CURRENT_LYRIC('')
+                    }
+                    this.lrcObj.setLyric(res.data)
+                    if (this.playing && this.player.duration) {
+                        this.lrcObj.play(this.player.currentTime * 1000);
+                    }
+                }
+                else {
+                    this.showErrNotif('LRC loaded failed')
+                    this.lrcAvailable = false;
+                    this.lrcObj.setLyric('');
+                    this.SET_CURRENT_LYRIC('');
+                }
+            })
+            .catch(err => {
+                console.error(err)
+                if (err.response) {
+                    if (err.response.status === 401) {
+                        this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`);
+                    }
+                }
+                else {
+                    this.showErrNotif(err.message || err);
+                }
+            })
+        },
+
+        isSRT(subUrl, changeSub) {
+            this.$axios.get(subUrl)
+            .then(res => {
+                if (res.data) {
+                    if (changeSub) {
+                        console.log('Selected SRT loaded successful');
+                        this.lrcAvailable = true
+                        this.lrcObj.setLyric('')
+                        this.SET_CURRENT_LYRIC('')
+                    }
+                    else {
+                        console.log('SRT loaded successful');
+                        this.lrcAvailable = true
+                        this.lrcObj.setLyric('')
+                        this.SET_CURRENT_LYRIC('')
+                    }
+                    
+                    const parser = new srtParser2();
+                    const srtArr = parser.fromSrt(res.data);
+                    let lrc = []
+                    srtArr.map(text => {
+                        const lrcText = `${this.secondsToLrcFormat(text.startSeconds)}${text.text}`
+                        lrc.push(lrcText)
+                        const endtime = `${this.secondsToLrcFormat(text.endSeconds)}`
+                        lrc.push(endtime)
+                    })
+                    const lrcContent = lrc.join('\n');
+                    res.data = lrcContent
+                    this.lrcObj.setLyric(res.data)
+                    if (this.playing && this.player.duration) {
+                        this.lrcObj.play(this.player.currentTime * 1000);
+                    }
+                }
+                else {
+                    this.showErrNotif('SRT loaded failed')
+                    this.lrcAvailable = false;
+                    this.lrcObj.setLyric('');
+                    this.SET_CURRENT_LYRIC('');
+                }
+            })
+            .catch(err => {
+                console.error(err)
+                if (err.response) {
+                    if (err.response.status === 401) {
+                        this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`);
+                    }
+                }
+                else {
+                    this.showErrNotif(err.message || err);
+                }
+            })
+        },
+
+        isVTT(subUrl, changeSub) {
+            this.$axios.get(subUrl)
+            .then(res => {
+                if (res.data) {
+                    if (changeSub) {
+                        console.log('Selected VTT loaded successful');
+                        this.lrcAvailable = true
+                        this.lrcObj.setLyric('')
+                        this.SET_CURRENT_LYRIC('')
+                    }
+                    else {
+                        console.log('VTT loaded successful');
+                        this.lrcAvailable = true
+                        this.lrcObj.setLyric('')
+                        this.SET_CURRENT_LYRIC('')
+                    }
+
+                    const parser = new WebVTTParser();
+                    const tree = parser.parse(res.data, 'metadata');
+                    const lrc = []
+                    tree.cues.map(cue => {
+                        const lrcText = `${this.secondsToLrcFormat(cue.startTime)}${cue.text}`
+                        lrc.push(lrcText)
+                        const endTime = this.secondsToLrcFormat(cue.endTime)
+                        lrc.push(endTime)
+                    })
+                    const lrcContent = lrc.join('\n')
+                    res.data = lrcContent
+                    this.lrcObj.setLyric(res.data)
+                    if (this.playing && this.player.duration) {
+                        this.lrcObj.play(this.player.currentTime * 1000);
+                    }
+                }
+                else {
+                    this.showErrNotif('VTT loaded failed')
+                    this.lrcAvailable = false;
+                    this.lrcObj.setLyric('');
+                    this.SET_CURRENT_LYRIC('');
+                }
+            })
+            .catch(err => {
+                console.error(err)
+                if (err.response) {
+                    if (err.response.status === 401) {
+                        this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`);
+                    }
+                }
+                else {
+                    this.showErrNotif(err.message || err);
+                }
+            })
+        },
+
+        isASS(subUrl, changeSub) {
+            this.$axios.get(subUrl)
+            .then(res => {
+                if (res.data) {
+                    if (changeSub) {
+                        console.log('Selected ASS loaded successful');
+                        this.lrcAvailable = true
+                        this.lrcObj.setLyric('')
+                        this.SET_CURRENT_LYRIC('')
+                    }
+                    else {
+                        console.log('ASS loaded successful');
+                        this.lrcAvailable = true
+                        this.lrcObj.setLyric('')
+                        this.SET_CURRENT_LYRIC('')
+                    }
+
+                    // const dialogue = parsedASS.events.dialogue
+                    const parsedASS = parse(res.data);
+                    const lrc = []
+                    parsedASS.events.dialogue.map(dia => {
+                        const lrcText = `${this.secondsToLrcFormat(dia.Start)}${dia.Text.combined}`
+                        lrc.push(lrcText)
+                        const endTime = this.secondsToLrcFormat(dia.End)
+                        lrc.push(endTime)
+                    })
+                    const lrcContent = lrc.join('\n')
+                    res.data = lrcContent
+                    this.lrcObj.setLyric(res.data)
+                    if (this.playing && this.player.duration) {
+                        this.lrcObj.play(this.player.currentTime * 1000);
+                    }
+                }
+                else {
+                    this.showErrNotif('VTT loaded failed')
+                    this.lrcAvailable = false;
+                    this.lrcObj.setLyric('');
+                    this.SET_CURRENT_LYRIC('');
+                }
+            })
+            .catch(err => {
+                console.error(err)
+                if (err.response) {
+                    if (err.response.status === 401) {
+                        this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`);
+                    }
+                }
+                else {
+                    this.showErrNotif(err.message || err);
+                }
+            })
         }
     },
 
