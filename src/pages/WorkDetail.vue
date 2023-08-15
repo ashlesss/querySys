@@ -11,8 +11,9 @@
 
     <div v-show="!isLoading" id="workDetail">
         <WorkDetailPage v-if="workInfo.work_title" :workInfo="workInfo"/>
-        <div id="scrollTo"></div>
-        <WorkTree @click="scrollToElement" 
+        <div id="work-tree"></div>
+        <!-- @click="scrollToElement" -->
+        <WorkTree  
             :tree="tree" 
             @path_down="pathDown" 
             @path_up="pathUp" 

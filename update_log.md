@@ -1,5 +1,13 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 8/15/2023
+
+1. Player is now support PiP(picture in picture) subtitle.
+2. Adjust `q-breadcrumbs` style in `WorkTree` so it will wrap around when text is too long.
+
+### TODO
+1. Finish admin pages.
+
 ## 8/14/2023
 
 1. Subtitle type is now support `.lrc`, `.srt`, `.ass`, `.vtt`.
@@ -17,7 +25,7 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 4. Subtitle type is now support `.srt`.
 
 ### TODO
-1. Add pop-up play to subtitle bar.
+~~1. Add pop-up play to subtitle bar.(Completed)~~
 
 ## 8/11/2023
 

@@ -32,7 +32,8 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
     forwardSeekMode: false,
     currentSubtitleIndex: -1,
     haveSubtitle: false,
-    userSetCurrentSubtitleIndex: -1
+    userSetCurrentSubtitleIndex: -1,
+    pipEnable: false,
   }),
 
   getters: {
@@ -233,6 +234,10 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
     SET_USER_SELECT_SUB_INDEX(index) {
       this.userSetCurrentSubtitleIndex = index
       this.currentSubtitleIndex = index
+    },
+
+    SET_PIP_ENABLE(flag) {
+      this.pipEnable = flag
     }
   }
 })

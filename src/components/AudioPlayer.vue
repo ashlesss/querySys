@@ -56,6 +56,12 @@
                     </div>
 
                     <q-btn dense round size="md" color="white" text-color="dark" 
+                        icon="picture_in_picture_alt" @click="togglePiP" 
+                        class="absolute-bottom-left q-ma-sm" 
+                        v-show="haveSubtitle"
+                    />
+
+                    <q-btn dense round size="md" color="white" text-color="dark" 
                         icon="subtitles" @click="showSubtitleList = !showSubtitleList" 
                         class="absolute-bottom-right q-ma-sm" 
                         v-show="haveSubtitle"
@@ -67,6 +73,7 @@
                 <div class="row items-center q-mx-sm q-my-sm" style="height: 40px">
                     <div class="col-auto">{{ formatSeconds(currentTime) }}</div>
                     <AudioElement class="col" />
+                    <PiPSubtitle />
                     <div class="col-auto">{{ formatSeconds(duration) }}</div>
                 </div>
 
@@ -236,6 +243,10 @@
                 </q-list>
             </q-card>
         </q-dialog>
+
+        <!-- <div ref="pipLyrics">
+            TODO
+        </div> -->
     </div>
 </template>
 <script>
@@ -243,6 +254,7 @@ import { mapState, mapActions } from 'pinia'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
 import AudioElement from './AudioElement.vue'
 import draggable from 'vuedraggable'
+import PiPSubtitle from './PiPSubtitle.vue'
 
 export default {
     name: 'AudioPlayer',
@@ -250,6 +262,7 @@ export default {
     components: {
         AudioElement,
         draggable,
+        PiPSubtitle
     },
 
     data() {
@@ -259,7 +272,7 @@ export default {
             queueCopy: [],
             hideSeekButton: false,
             swapSeekButton: false,
-            showSubtitleList: false
+            showSubtitleList: false,
         }
     },
 
@@ -278,6 +291,23 @@ export default {
                 this.editCurrentPlayList = false
             }
         },
+
+        // currentLyric() {
+        //     if (this.pipEnable) {
+        //         this.updateCanvasWithLyrics()
+        //     }
+        // },
+
+        // pipEnable() {
+        //     if (this.pipEnable) {
+        //         const lyricsVideo = document.getElementById("lyricsVideo");
+        //         lyricsVideo.addEventListener('leavepictureinpicture', () => {
+        //             console.log("User closed PiP!");
+        //             this.SET_PIP_ENABLE(false)
+        //             this.PAUSE()
+        //         });
+        //     }
+        // }
     },
 
     computed: {
@@ -296,7 +326,9 @@ export default {
             'queueIndex',
             'GET_QUEUE_SUB',
             'currentSubtitleIndex',
-            'haveSubtitle'
+            'haveSubtitle',
+            'currentLyric',
+            'pipEnable',
         ]),
 
         coverUrl() {
@@ -388,7 +420,10 @@ export default {
             'SET_TRACK',
             'REMOVE_FROM_QUEUE',
             'SET_QUEUE',
-            'SET_USER_SELECT_SUB_INDEX'
+            'SET_USER_SELECT_SUB_INDEX',
+            'SET_PIP_ENABLE',
+            'PAUSE',
+            'PLAY'
         ]),
 
         openWorkDetail () {
@@ -458,7 +493,16 @@ export default {
 
         onClickSubtitle(index) {
             this.SET_USER_SELECT_SUB_INDEX(index)
-        }
+        },
+
+        togglePiP() {
+            if (this.pipEnable) {
+                this.SET_PIP_ENABLE(false)
+            }
+            else {
+                this.SET_PIP_ENABLE(true)
+            }
+        },
     },
 }
 </script>

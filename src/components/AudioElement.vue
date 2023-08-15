@@ -34,7 +34,7 @@ export default {
     data() {
         return {
             lrcObj: null,
-            lrcAvailable: false,
+            lrcAvailable: false
         }
     },
 
@@ -52,7 +52,9 @@ export default {
             'queueIndex',
             'volume',
             'currentSubtitleIndex',
-            'userSetCurrentSubtitleIndex'
+            'userSetCurrentSubtitleIndex',
+            'pipEnable',
+            'currentLyric'
         ]),
 
         ...mapState(useSubtitleFiles, [
@@ -147,7 +149,9 @@ export default {
             'SET_VOLUME',
             'SET_CURRENT_LYRIC',
             'SET_CURR_SUB_INDEX',
-            'SET_HAVE_SUBTITLE'
+            'SET_HAVE_SUBTITLE',
+            'SET_PIP_ENABLE',
+            'NEXT_TRACK'
         ]),
 
         onWaiting() {
@@ -520,7 +524,7 @@ export default {
                     this.showErrNotif(err.message || err);
                 }
             })
-        }
+        },
     },
 
     mounted() {

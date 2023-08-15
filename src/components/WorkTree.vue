@@ -1,12 +1,17 @@
 <template>
-    <div class="q-ma-md ">
+    <div class="q-ma-md">
         <q-breadcrumbs gutter="xs" v-if="path.length">
             <q-breadcrumbs-el>
-                <q-btn no-caps flat dense size="md" icon="folder" style="height: 30px;" @click="emptyPath()">ROOT</q-btn>
+                <q-btn no-caps flat dense size="md" icon="folder" class="breadcrumb-btn" @click="emptyPath()">
+                    <span class="breadcrumb-text">ROOT</span>
+                </q-btn>
             </q-breadcrumbs-el>
             
-            <q-breadcrumbs-el v-for="(folderName, index) in path"  :key="index"  class="cursor-pointer" >
-                <q-btn no-caps flat dense size="md" icon="folder" style="height: 30px;" @click="onClickBreadcrumb(index)">{{folderName}}</q-btn>
+            <q-breadcrumbs-el v-for="(folderName, index) in path"  :key="index"  class="breadcrumb-btn cursor-pointer" >
+                <q-btn no-caps flat dense size="md" @click="onClickBreadcrumb(index)">
+                    <q-icon name="folder" style="vertical-align: middle;"></q-icon>
+                    <span class="breadcrumb-text">{{folderName}}</span>
+                </q-btn>
             </q-breadcrumbs-el>
         </q-breadcrumbs>
 
@@ -89,8 +94,6 @@ import { useDownloadCardStore } from '../stores/downloadCard'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
 // import { useSubtitleFiles } from '../stores/subtitleFiles'
 import levenshtein from 'fast-levenshtein';
-import { scroll } from 'quasar'
-const { getScrollTarget, setVerticalScrollPosition } = scroll
 
 export default{
     name: 'WorkTree',
@@ -661,8 +664,16 @@ export default{
                     });
             }
         },
-
     }
 }
 
 </script>
+
+<style lang="scss" scoped>
+.breadcrumb-text {
+  white-space: normal;
+  display: inline-block;
+  vertical-align: middle;
+  max-width: calc(100% - 24px);
+}
+</style>

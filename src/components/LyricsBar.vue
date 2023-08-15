@@ -1,5 +1,5 @@
 <template>
-    <q-card class="lbar">
+    <q-card class="lbar" v-show="!pipEnable">
           <div id="lyricsBar" class="text-center text-h6 text-bold ellipsis-2-lines text-purple q-mb-md absolute-bottom">
               <span id="lyric">
                 {{ currentLyric }}
@@ -28,7 +28,8 @@ export default {
 
     computed: {
         ...mapState(useAudioPlayerStore, [
-            'currentLyric'
+            'currentLyric',
+            'pipEnable'
         ])
     },
 
