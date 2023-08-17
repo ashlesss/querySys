@@ -27,7 +27,7 @@ export const useDownloadCardStore = defineStore('downloadcard', {
 
     TOGGLE_DOWNLOAD() {
       if (this.fileListStore.length) {
-        this.seamlessStore = true
+        // this.seamlessStore = true
         // console.log(this.fileListStore);
       }
     },
@@ -129,6 +129,10 @@ export const useDownloadCardStore = defineStore('downloadcard', {
         this.downloadSpeed = `${(speed / 1073741824).toFixed(2)} GB/s`
         // console.log(`Download speed: ${this.downloadSpeed} GB/s`);
       }
+    },
+
+    SET_SEAMLESS(flag) {
+      this.seamlessStore = flag
     }
   }
 })

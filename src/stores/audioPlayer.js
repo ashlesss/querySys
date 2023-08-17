@@ -34,6 +34,7 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
     haveSubtitle: false,
     userSetCurrentSubtitleIndex: -1,
     pipEnable: false,
+    currentCMPLyrics: '',
   }),
 
   getters: {
@@ -127,6 +128,7 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       this.currentLyric = ''
       this.currentTime = 0 // second
       this.duration = 0
+      this.pipEnable = false
     },
     ADD_TO_QUEUE (file) {
       const queue = this.queue
@@ -238,6 +240,21 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
 
     SET_PIP_ENABLE(flag) {
       this.pipEnable = flag
+    },
+
+    SET_CURR_CMP_LYRICS(lyrics) {
+      this.currentCMPLyrics = lyrics
+      // console.log(this.currentCMPLyrics);
+    },
+
+    RESET_SUB_DATA() {
+      this.currentSubtitleIndex = -1
+      this.haveSubtitle = false
+      this.userSetCurrentSubtitleIndex = -1
+      this.pipEnable = false
+      this.currentCMPLyrics = ''
+      this.currentLyric = ''
+      this.haveSubtitle = false
     }
   }
 })

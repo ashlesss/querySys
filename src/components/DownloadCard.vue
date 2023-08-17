@@ -37,7 +37,7 @@
                             </div>
                         </div>
 
-                        <div v-show="!isCompletedStore && !downloadFailed">
+                        <div v-show="!downloadFailed && !isCompletedStore">
                             <q-item-label caption lines="1">{{ downloadSpeed }}</q-item-label>
                         </div>
                     </q-item-section>

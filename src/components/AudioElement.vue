@@ -96,6 +96,34 @@ export default {
                 this.resetPlayer()
                 this.player.media.load();
                 this.loadLrcFile()
+
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: this.currentPlayingFile.title,
+                        artist: this.currentPlayingFile.hash.split('/')[0],
+                        album: this.currentPlayingFile.workTitle,
+                    });
+
+                    navigator.mediaSession.setActionHandler('play', () => {
+                        console.log('Play action triggered');
+                        this.PLAY()
+                    });
+
+                    navigator.mediaSession.setActionHandler('pause', () => {
+                        console.log('Pause action triggered');
+                        this.PAUSE()
+                    });
+
+                    navigator.mediaSession.setActionHandler('previoustrack', () => {
+                        console.log('"Previous Track" triggered.');
+                        this.PREVIOUS_TRACK()
+                    });
+
+                    navigator.mediaSession.setActionHandler('nexttrack', () => {
+                        console.log('"Next Track" triggered.');
+                        this.NEXT_TRACK()
+                    });
+                }
             }
         },
 
@@ -151,7 +179,9 @@ export default {
             'SET_CURR_SUB_INDEX',
             'SET_HAVE_SUBTITLE',
             'SET_PIP_ENABLE',
-            'NEXT_TRACK'
+            'NEXT_TRACK',
+            'SET_CURR_CMP_LYRICS',
+            'RESET_SUB_DATA'
         ]),
 
         onWaiting() {
@@ -252,7 +282,7 @@ export default {
             this.lrcObj = new Lyric({
                 onPlay: (line, text) => {
                     this.SET_CURRENT_LYRIC(text);
-                },
+                }
             })
         },
 
@@ -310,11 +340,9 @@ export default {
                 
             }
             else {
-                this.SET_HAVE_SUBTITLE(false)
                 this.lrcAvailable = false;
                 this.lrcObj.setLyric('');
-                this.SET_CURRENT_LYRIC('');
-                this.SET_CURR_SUB_INDEX(-1)
+                this.RESET_SUB_DATA()
             }
         },
 
@@ -376,12 +404,14 @@ export default {
                         this.lrcAvailable = true
                         this.lrcObj.setLyric('')
                         this.SET_CURRENT_LYRIC('')
+                        this.SET_CURR_CMP_LYRICS('')
                     }
                     else {
                         console.log('SRT loaded successful');
                         this.lrcAvailable = true
                         this.lrcObj.setLyric('')
                         this.SET_CURRENT_LYRIC('')
+                        this.SET_CURR_CMP_LYRICS('')
                     }
                     
                     const parser = new srtParser2();
@@ -396,6 +426,7 @@ export default {
                     const lrcContent = lrc.join('\n');
                     res.data = lrcContent
                     this.lrcObj.setLyric(res.data)
+                    this.SET_CURR_CMP_LYRICS(res.data)
                     if (this.playing && this.player.duration) {
                         this.lrcObj.play(this.player.currentTime * 1000);
                     }
@@ -405,6 +436,7 @@ export default {
                     this.lrcAvailable = false;
                     this.lrcObj.setLyric('');
                     this.SET_CURRENT_LYRIC('');
+                    this.SET_CURR_CMP_LYRICS('')
                 }
             })
             .catch(err => {
@@ -429,12 +461,14 @@ export default {
                         this.lrcAvailable = true
                         this.lrcObj.setLyric('')
                         this.SET_CURRENT_LYRIC('')
+                        this.SET_CURR_CMP_LYRICS('')
                     }
                     else {
                         console.log('VTT loaded successful');
                         this.lrcAvailable = true
                         this.lrcObj.setLyric('')
                         this.SET_CURRENT_LYRIC('')
+                        this.SET_CURR_CMP_LYRICS('')
                     }
 
                     const parser = new WebVTTParser();
@@ -449,6 +483,7 @@ export default {
                     const lrcContent = lrc.join('\n')
                     res.data = lrcContent
                     this.lrcObj.setLyric(res.data)
+                    this.SET_CURR_CMP_LYRICS(res.data)
                     if (this.playing && this.player.duration) {
                         this.lrcObj.play(this.player.currentTime * 1000);
                     }
@@ -458,6 +493,7 @@ export default {
                     this.lrcAvailable = false;
                     this.lrcObj.setLyric('');
                     this.SET_CURRENT_LYRIC('');
+                    this.SET_CURR_CMP_LYRICS('')
                 }
             })
             .catch(err => {
@@ -482,12 +518,14 @@ export default {
                         this.lrcAvailable = true
                         this.lrcObj.setLyric('')
                         this.SET_CURRENT_LYRIC('')
+                        this.SET_CURR_CMP_LYRICS('')
                     }
                     else {
                         console.log('ASS loaded successful');
                         this.lrcAvailable = true
                         this.lrcObj.setLyric('')
                         this.SET_CURRENT_LYRIC('')
+                        this.SET_CURR_CMP_LYRICS('')
                     }
 
                     // const dialogue = parsedASS.events.dialogue
@@ -502,6 +540,7 @@ export default {
                     const lrcContent = lrc.join('\n')
                     res.data = lrcContent
                     this.lrcObj.setLyric(res.data)
+                    this.SET_CURR_CMP_LYRICS(res.data)
                     if (this.playing && this.player.duration) {
                         this.lrcObj.play(this.player.currentTime * 1000);
                     }
@@ -511,6 +550,7 @@ export default {
                     this.lrcAvailable = false;
                     this.lrcObj.setLyric('');
                     this.SET_CURRENT_LYRIC('');
+                    this.SET_CURR_CMP_LYRICS('')
                 }
             })
             .catch(err => {

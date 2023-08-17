@@ -243,10 +243,6 @@
                 </q-list>
             </q-card>
         </q-dialog>
-
-        <!-- <div ref="pipLyrics">
-            TODO
-        </div> -->
     </div>
 </template>
 <script>
@@ -291,23 +287,6 @@ export default {
                 this.editCurrentPlayList = false
             }
         },
-
-        // currentLyric() {
-        //     if (this.pipEnable) {
-        //         this.updateCanvasWithLyrics()
-        //     }
-        // },
-
-        // pipEnable() {
-        //     if (this.pipEnable) {
-        //         const lyricsVideo = document.getElementById("lyricsVideo");
-        //         lyricsVideo.addEventListener('leavepictureinpicture', () => {
-        //             console.log("User closed PiP!");
-        //             this.SET_PIP_ENABLE(false)
-        //             this.PAUSE()
-        //         });
-        //     }
-        // }
     },
 
     computed: {

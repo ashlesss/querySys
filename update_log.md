@@ -1,5 +1,11 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 8/16/2023
+
+1. Optimize download speed monitor.
+2. Add subtitle card so that user can see the whole lyrics when double click the lyric bar.
+3. Add more metadata to `navigator.mediaSession.metadata` for better user experience.
+
 ## 8/15/2023
 
 1. Player is now support PiP(picture in picture) subtitle.

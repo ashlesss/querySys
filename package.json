@@ -20,6 +20,7 @@
     "lrc-file-parser": "^2.4.1",
     "pinia": "^2.1.4",
     "quasar": "^2.6.0",
+    "sanitize-html": "^2.11.0",
     "socket.io-client": "^4.7.1",
     "srt-parser-2": "^1.2.3",
     "vue": "^3.0.0",

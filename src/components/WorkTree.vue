@@ -106,7 +106,10 @@ export default{
             userPath: [],
             userAgent: '',
             userPlatform: '',
-            userPathLen: 0
+            userPathLen: 0,
+            totalDownloadedSize: 0,
+            previousDownloadedSize: 0,
+            fileSize: 0
         }
     },
 
@@ -212,6 +215,10 @@ export default{
         }
     },
 
+    created() {
+        this.backgroundDownloadSpeedMonitor()
+    },
+
     methods: {
         ...mapActions(useDownloadCardStore, [
             'CAL_FILE_SIZE',
@@ -224,7 +231,8 @@ export default{
             'GET_REAL_TIME_SIZE',
             'CLOSE_DOWNLOAD_CARD',
             'GET_FILES',
-            'GET_DOWNLOAD_SPEED'
+            'GET_DOWNLOAD_SPEED',
+            'SET_SEAMLESS'
         ]),
 
         ...mapActions(useAudioPlayerStore ,[
@@ -463,8 +471,9 @@ export default{
                     headers: header
                 });
                 let downloaded = 0;
-                const startTime = Date.now();
+                // const startTime = Date.now();
                 const contentLength = response.headers.get('Content-Length');
+                this.fileSize = contentLength
 
                 // Create a writable stream to save the file
                 const writableStream = await fileHandle.createWritable();
@@ -473,23 +482,28 @@ export default{
                 // Create a ReadableStream from the response body
                 const reader = response.body.getReader();
 
-                speedReportInterval = setInterval(() => {
-                    const durationInSeconds = (Date.now() - startTime) / 1000;
-                    const bytesPerSecond = downloaded / durationInSeconds;
-                    this.GET_DOWNLOAD_SPEED(bytesPerSecond)
-                    this.GET_REAL_TIME_SIZE(this.calSizeUnit(contentLength, downloaded))
-                }, 500);
+                // speedReportInterval = setInterval(() => {
+                //     const durationInSeconds = (Date.now() - startTime) / 1000;
+                //     const bytesPerSecond = downloaded / durationInSeconds;
+                //     this.GET_DOWNLOAD_SPEED(bytesPerSecond)
+                //     this.GET_REAL_TIME_SIZE(this.calSizeUnit(contentLength, downloaded))
+                // }, 500);
 
                 // Start reading the response stream and write the chunks to the file
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) {
-                        clearInterval(speedReportInterval)
+                        // clearInterval(speedReportInterval)
+                        // const durationInSeconds = (Date.now() - startTime) / 1000;
+                        // const bytesPerSecond = downloaded / durationInSeconds;
+                        // this.GET_DOWNLOAD_SPEED(bytesPerSecond)
                         this.GET_REAL_TIME_SIZE(this.calSizeUnit(contentLength, downloaded))
+                        this.previousDownloadedSize = 0
                         break
                     }
                     
                     downloaded += value.length;
+                    this.totalDownloadedSize = downloaded
                     // this.$emit('progress', downloaded)
                     // this.GET_REAL_TIME_SIZE(downloaded)
                     // Write the chunk to the file
@@ -519,6 +533,24 @@ export default{
             }
         },
 
+        backgroundDownloadSpeedMonitor() {
+            this.downloadInterval = setInterval(() => {
+                const bytesDownloaded = this.totalDownloadedSize - this.previousDownloadedSize;
+                
+                if (bytesDownloaded <= 0) {
+                    // this.downloadSpeed = '';
+                    this.GET_DOWNLOAD_SPEED(0)
+                } else {
+                // const unit = this.getUnits(bytesDownloaded);
+                    // this.downloadSpeed = `${this.formatSize(bytesDownloaded, unit)} ${unit}/s`;
+                    this.GET_DOWNLOAD_SPEED(bytesDownloaded)
+                    this.GET_REAL_TIME_SIZE(this.calSizeUnit(this.fileSize, this.totalDownloadedSize))
+                }
+                
+                this.previousDownloadedSize = this.totalDownloadedSize;
+            }, 1000);
+        },
+
         async downloadFolder(item, itemfolderDirName) {
 
             // Get items from user selected folder.
@@ -528,8 +560,6 @@ export default{
 
             // Start download files in folder
             try {
-                const handle = await window.showDirectoryPicker()
-                const handler = await handle.getDirectoryHandle(this.$route.params.id, {create: true})
 
                 const files = [];
                 for (const entry of itemArr) {
@@ -541,6 +571,9 @@ export default{
 
                 await this.getFileSize(files)
 
+                const handle = await this.getDirectoryHandleOrPromptUser()
+                const handler = await handle.getDirectoryHandle(this.$route.params.id, {create: true})
+
                 const fileNamesWithPaths = [];
                 for (const entry of itemArr) {
                     await this.extractFilePaths(entry, '', fileNamesWithPaths, handler);
@@ -549,13 +582,53 @@ export default{
             }
             catch(err) {
                 if (err instanceof DOMException) {
-                    console.log(err);
-                    // this.$emit('DOMException', true)
+                    console.error(err);
                     this.CLOSE_DOWNLOAD_CARD()
+                    this.RESET()
                 }
                 else {
                     console.log(err);
                 }
+            }
+        },
+
+        async getSavePath() {
+            try {
+                const directory = await window.showDirectoryPicker({
+                    startIn: "downloads",
+                    mode: "readwrite"
+                });
+
+                const permissionStatus = await directory.queryPermission({ mode: "readwrite" });
+                if (permissionStatus === 'granted' || await directory.requestPermission({ mode: "readwrite" }) === 'granted') {
+                    return directory;
+                }
+            } catch (error) {
+                throw error; 
+            }
+        },
+
+        async getDirectoryHandleOrPromptUser() {
+            try {
+                return await this.getSavePath()
+            } catch (error) {
+                if (!error.message.includes("The user aborted a request.") &&
+                    (error.message.includes("Must be handling a user gesture to show a file picker") ||
+                     error.message.includes("User activation is required"))) {
+                    return await new Promise(resolve => {
+                        this.$q.dialog({
+                            title: 'Select download path',
+                            cancel: false,
+                            persistent: true,
+                            ok: {
+                                label: "select"
+                            }
+                        }).onOk(() => {
+                            resolve(this.getSavePath());
+                        });
+                    });
+                }
+                throw error;
             }
         },
 
@@ -567,8 +640,16 @@ export default{
         },
 
         async getFileSize(files) {
-            for (let i = 0; i < files.length; i++) {
-                try {
+            const notif = this.$q.notify({
+                group: false, // required to be updatable
+                timeout: 0, // we want to be in control when it gets dismissed
+                spinner: true,
+                message: 'Getting ready...',
+                caption: '0%'
+            })
+            let percentage = 0
+            try {
+                for (let i = 0; i < files.length; i++) {
                     const fileUrl = files[i].mediaDownloadUrl;
                     const header = {
                         'Authorization': this.$q.localStorage.getItem('jwt-token') 
@@ -581,13 +662,23 @@ export default{
                     const contentLength = response.headers.get('Content-Length');
                     // console.log(contentLength);
                     this.CAL_FILE_SIZE(Number(contentLength))
-                    if (i === files.length - 1) {
-                        this.SET_IS_CAL_SIZE_FALSE()
-                    }
+                    percentage = Math.floor((i / (files.length - 1)) * 100)
+                    notif({
+                        caption: `${percentage}%`
+                    })
                 }
-                catch(err) {
-                    console.log(err);
-                }
+                this.SET_IS_CAL_SIZE_FALSE()
+                notif({
+                    icon: 'done', // we add an icon
+                    spinner: false, // we reset the spinner setting so the icon can be displayed
+                    message: 'Ready!',
+                    color: 'positive',
+                    timeout: 2000 // we will timeout it in 2.5s
+                })
+                this.SET_SEAMLESS(true)
+            }
+            catch(err) {
+                console.error(err);
             }
         },
 
@@ -655,13 +746,14 @@ export default{
                     this.extractSubtitleFile(child, newPath, result);
                 }
             } else if (entry.type === 'text') {
-                if (entry.title.substring(entry.title.lastIndexOf(".")) !== '.txt')
+                if (entry.title.substring(entry.title.lastIndexOf(".")) !== '.txt') {
                     result.push({
                         title: entry.title, 
                         mediaStreamUrl: entry.mediaStreamUrl, 
                         mediaDownloadUrl: entry.mediaDownloadUrl,
                         duration: entry.duration
                     });
+                }
             }
         },
     }

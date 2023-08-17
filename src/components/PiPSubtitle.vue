@@ -71,32 +71,6 @@ export default {
             this.pipWindow = t.pictureInPictureWindow;
             this.pipWindow.onresize = this.onPipWindowResize.bind(this);
             this.onPipWindowResize();
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: this.currentPlayingFile.title,
-                    album: this.currentPlayingFile.workTitle
-                });
-
-                navigator.mediaSession.setActionHandler('play', () => {
-                    console.log('Play action triggered');
-                    this.PLAY()
-                });
-
-                navigator.mediaSession.setActionHandler('pause', () => {
-                    console.log('Pause action triggered');
-                    this.PAUSE()
-                });
-
-                navigator.mediaSession.setActionHandler('previoustrack', () => {
-                    console.log('"Previous Track" triggered.');
-                    this.PREVIOUS_TRACK()
-                });
-
-                navigator.mediaSession.setActionHandler('nexttrack', () => {
-                    console.log('"Next Track" triggered.');
-                    this.NEXT_TRACK()
-                });
-            }
         }, false);
         addEventListener("leavepictureinpicture", () => {
             this.currentPiPStatus = false;
