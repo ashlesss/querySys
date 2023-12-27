@@ -20,7 +20,18 @@
             </q-card-section>
 
             <q-card-section class="q-pt-none">
-                <div v-html="lyricContentDisplay"></div>
+                <!-- <div v-html="lyricContentDisplay"></div> -->
+                <div class="lyric-content">
+                    <div 
+                    v-for="(line, index) in lyricContentDisplay" 
+                    :key="index" 
+                    :class="{ 'text-bold': index === this.currentLrcLineNumber }"
+                    :id="index === this.currentLrcLineNumber ? 'currentLyricEl' : ''">
+                        <br>
+                        {{ line.text }}
+                    </div>
+                </div>
+                
             </q-card-section>
 
         </q-card>
@@ -32,6 +43,7 @@ import Moveable from "vue3-moveable";
 import { mapState, mapActions } from 'pinia'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
 import sanitizeHtml from 'sanitize-html';
+import { scroll } from 'quasar'
 
 export default {
     name: 'LyricsBar',
@@ -45,24 +57,31 @@ export default {
             'currentLyric',
             'pipEnable',
             'currentCMPLyrics',
-            'currentLyric'
+            'currentLyric',
+            'currentLrcLineNumber'
         ]),
 
         lyricContentDisplay() {
-            return this.currentCMPLyrics ? this.currentCMPLyrics
-                .trim()
-                .replace(/[\r\n]/g, '<br><br>')
-                .split('<br>')
-                .map(line => sanitizeHtml(line))
-                .join('<br>')
-                .replace(
-                sanitizeHtml(this.currentLyric),
-                `<span id="currentLyricEl" class="text-weight-bolder" style="font-size: 1.2em">${sanitizeHtml(
-                    this.currentLyric
-                )}</span>`
-                )
-            : '';
-        }
+            return this.currentCMPLyrics.map(line => ({
+                text: sanitizeHtml(line.text.trim())
+            }));
+
+        // lyricContentDisplay() {
+        //     return this.currentCMPLyrics ? this.currentCMPLyrics
+        //         .trim()
+        //         .replace(/[\r\n]/g, '<br>')
+        //         .split('<br>')
+        //         .map(line => sanitizeHtml(line))
+        //         .join('<br>')
+        //         .replace(
+        //         sanitizeHtml(this.currentLyric),
+        //         `<span id="currentLyricEl" class="text-weight-bolder" style="font-size: 1.2em">${sanitizeHtml(
+        //             this.currentLyric
+        //         )}</span>`
+        //         )
+        //     : '';
+        // }
+}
     },
 
     // watch: {
@@ -81,15 +100,19 @@ export default {
 
     mounted() {
         document.getElementById('lbarEl').addEventListener('dblclick', () => {
-            // this.SET_SHOW_LYRICS_CARD(true)
-            this.showLyricsCard = true
-            this.$nextTick(() => {
-            const el = document.getElementById('currentLyricEl');
-            if (!el) return;
-                const target = document.getElementById('scrollTargetEl');
-                const offset = el.offsetTop;
-                target.scrollTop = offset; // Simplified scroll to position, adjust as necessary
-            });
+        // this.SET_SHOW_LYRICS_CARD(true)
+        // console.log(this.currentCMPLyrics);
+        this.showLyricsCard = true
+        this.$nextTick(() => {
+            const { setVerticalScrollPosition } = scroll
+            const currentLyricEl = document.getElementById('currentLyricEl')
+            if (!currentLyricEl) {
+                return
+            }
+            const scrollTargetRl = document.getElementById('scrollTargetEl')
+            const offset = currentLyricEl.offsetTop
+            setVerticalScrollPosition (scrollTargetRl, offset, 500)
+            })
         })
     },
 
@@ -111,5 +134,9 @@ export default {
 }
 #lyricsBar {
     background-color: rgba($grey-4, $alpha: 0.6);
+}
+
+.lyric-content {
+    text-align: center;
 }
 </style>

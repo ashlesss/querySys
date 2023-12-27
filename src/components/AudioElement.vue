@@ -54,7 +54,8 @@ export default {
             'currentSubtitleIndex',
             'userSetCurrentSubtitleIndex',
             'pipEnable',
-            'currentLyric'
+            'currentLyric',
+            'currentCMPLyrics'
         ]),
 
         ...mapState(useSubtitleFiles, [
@@ -181,7 +182,8 @@ export default {
             'SET_PIP_ENABLE',
             'NEXT_TRACK',
             'SET_CURR_CMP_LYRICS',
-            'RESET_SUB_DATA'
+            'RESET_SUB_DATA',
+            'SET_CURRENT_LYRIC_LINE_NUMBER'
         ]),
 
         onWaiting() {
@@ -282,6 +284,11 @@ export default {
             this.lrcObj = new Lyric({
                 onPlay: (line, text) => {
                     this.SET_CURRENT_LYRIC(text);
+                    this.SET_CURRENT_LYRIC_LINE_NUMBER(line)
+                },
+                onSetLyric: (lines) => {
+                    this.SET_CURR_CMP_LYRICS(lines)
+                    console.log(this.currentCMPLyrics);
                 }
             })
         },
@@ -370,7 +377,13 @@ export default {
                         this.lrcObj.setLyric('')
                         this.SET_CURRENT_LYRIC('')
                     }
+
                     this.lrcObj.setLyric(res.data)
+
+                    // Then save lrc-file-parser processed lrc array to store.
+
+
+                    // this.SET_CURR_CMP_LYRICS(res.data)
                     if (this.playing && this.player.duration) {
                         this.lrcObj.play(this.player.currentTime * 1000);
                     }
@@ -426,7 +439,7 @@ export default {
                     const lrcContent = lrc.join('\n');
                     res.data = lrcContent
                     this.lrcObj.setLyric(res.data)
-                    this.SET_CURR_CMP_LYRICS(res.data)
+                    // this.SET_CURR_CMP_LYRICS(res.data)
                     if (this.playing && this.player.duration) {
                         this.lrcObj.play(this.player.currentTime * 1000);
                     }
@@ -483,7 +496,7 @@ export default {
                     const lrcContent = lrc.join('\n')
                     res.data = lrcContent
                     this.lrcObj.setLyric(res.data)
-                    this.SET_CURR_CMP_LYRICS(res.data)
+                    // this.SET_CURR_CMP_LYRICS(res.data)
                     if (this.playing && this.player.duration) {
                         this.lrcObj.play(this.player.currentTime * 1000);
                     }
@@ -530,8 +543,14 @@ export default {
 
                     // const dialogue = parsedASS.events.dialogue
                     const parsedASS = parse(res.data);
+                    // console.log(parsedASS);
                     const lrc = []
                     parsedASS.events.dialogue.map(dia => {
+                        // Remove lrc water mark font to prevent lrc overrun.
+                        if (dia.Style?.match(/水印/)) {
+                            return
+                        }
+
                         const lrcText = `${this.secondsToLrcFormat(dia.Start)}${dia.Text.combined}`
                         lrc.push(lrcText)
                         const endTime = this.secondsToLrcFormat(dia.End)
@@ -540,7 +559,7 @@ export default {
                     const lrcContent = lrc.join('\n')
                     res.data = lrcContent
                     this.lrcObj.setLyric(res.data)
-                    this.SET_CURR_CMP_LYRICS(res.data)
+                    // this.SET_CURR_CMP_LYRICS(res.data)
                     if (this.playing && this.player.duration) {
                         this.lrcObj.play(this.player.currentTime * 1000);
                     }

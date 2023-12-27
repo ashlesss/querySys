@@ -1,5 +1,10 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 12/27/2023
+
+1. Remove watermark lyric from the subtitle file to avoid overrun.(Buggy)
+2. Improve bolded subtitle line selection when viewing entire subtitle of current audio track.
+
 ## 8/16/2023
 
 1. Optimize download speed monitor.
