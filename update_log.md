@@ -1,5 +1,9 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 12/28/2023
+
+1. Refactor the search tags.
+
 ## 12/27/2023
 
 1. Remove watermark lyric from the subtitle file to avoid overrun.(Buggy)

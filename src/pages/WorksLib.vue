@@ -9,11 +9,16 @@
             v-for="(tag, index) in searchItems" 
             :key="index" 
             @remove="removeSearchTag(tag.name, index)" 
-            color="green" 
-            text-color="white"
+            :color="tag.color"
             style="font-size: 18px;" >
-                {{ tag.name }}
+                {{ tag.raw.term }}:{{ tag.raw.keyword }}
             </q-chip>
+
+            <!-- Plain keywords -->
+            <span>
+                {{ keyword ? parseKeywords(keyword).plainKeywords : '' }}
+            </span>
+
             <span v-show="totalWorks">
                 ({{ totalWorks }})
             </span>
@@ -94,11 +99,12 @@ import WordCard from '../components/WorkCard.vue';
 import NotifyMixin from '../mixins/Notification.js'
 import { mapState, mapActions } from 'pinia'
 import { usePageControlStore } from '../stores/pageControl'
+import Keywords from '../mixins/Keywords.js'
 
 export default defineComponent({
     name: "WorksLib",
 
-    mixins: [NotifyMixin],
+    mixins: [NotifyMixin, Keywords],
 
     components: {
         WordCard,
@@ -378,19 +384,36 @@ export default defineComponent({
             // console.log('resetPageTitle ' + this.currPage);
         },
 
+        pickTagColor(tagTerm) {
+            switch (tagTerm.term) {
+                case 'tag':
+                    return 'blue';
+                case 'va': 
+                    return 'green';
+                case 'circle':
+                    return 'purple';
+                default:
+                    return 'black';
+            }
+        },
+
         getSearchItem() {
             // const srMatched = this.$route.query.keyword.match(/\$(va|circle):([^\$\s]+)\$/g)
             const keyword = this.$route.query.keyword || ''
-            const regex = /\$(va|circle|tag|price|rate|sell):([^\$\s]+)\$/g
-            const srMatched = [...keyword.matchAll(regex)]
+
+            const srMatched = this.parseKeywords(keyword).accurateSearchTerms
+            console.log(srMatched);
             this.searchItems = []
             if (srMatched.length) {
                 srMatched.forEach(match => {
                     this.searchItems.push({
-                        name: `${match[1]}:${match[2]}`,
+                        name: `${match.term}:${match.keyword}`,
+                        raw: match,
+                        color: this.pickTagColor(match),
                         render: true
                     })
                 })
+                // console.log(this.searchItems);
             }
             else {
                 this.searchItems = []

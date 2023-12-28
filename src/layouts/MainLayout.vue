@@ -223,8 +223,8 @@ export default defineComponent({
       console.log('keyword', this.keyword);
       // sessionStorage.setItem('searchKeyword', this.keyword)
       // const keyword = sessionStorage.getItem('searchKeyword')
-      this.$q.sessionStorage.set('searchKeyword', this.keyword)
-      const keyword = this.$q.sessionStorage.getItem('searchKeyword')
+      this.$q.sessionStorage.set('searchKeyword', this.keyword.trim())
+      const keyword = this.$q.sessionStorage.getItem('searchKeyword').trim()
 
       if (keyword) {
         if (this.$route.path.match(/\bwork\b/) && this.sFocus) {

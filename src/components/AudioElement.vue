@@ -288,7 +288,7 @@ export default {
                 },
                 onSetLyric: (lines) => {
                     this.SET_CURR_CMP_LYRICS(lines)
-                    console.log(this.currentCMPLyrics);
+                    // console.log(this.currentCMPLyrics);
                 }
             })
         },
