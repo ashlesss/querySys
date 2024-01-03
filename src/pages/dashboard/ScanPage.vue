@@ -26,10 +26,25 @@
 </template>
 
 <script>
-import socket from 'socket.io-client'
-const io = socket.io(process.env.API)
 
 export default {
+
+  beforeRouteEnter(to, from, next) {
+    next(vm => {
+      // 'vm' is the instance of the component
+      if (to.path.match(/scanner/)) {
+        console.log('User entered scanner page, socket opened');
+        vm.$socket.connect();
+      }
+    });
+  },
+
+  beforeRouteLeave(to, from, next) {
+    console.log('User exited scanner page, socket closed');
+    this.$socket.close();
+    next()
+  },
+
   setup () {
     return {
       thumbStyle: {
@@ -61,36 +76,37 @@ export default {
     scan() {
       this.isCompleted = false
       this.logs = []
-      io.emit("scan", "START_SCAN")
-    },
+      this.$socket.emit("scan", "START_SCAN")
+    }
   },
 
   watch: {
     $route(data) {
-      if (data.path.match(/dashboard/)) {
-        document.title = 'DashBoard';
+      if (data.path.match(/scanner/)) {
+        console.log(data.path);
+        document.title = 'DashBoard | Scanner';
       }
     }
   },
 
   mounted() {
-    document.title = 'DashBoard'
-    io.emit('ON_SCAN_PAGE')
-    io.on('ON_SCAN_PAGE', res => {
+    document.title = 'DashBoard | Scanner'
+    this.$socket.emit('ON_SCAN_PAGE')
+    this.$socket.on('ON_SCAN_PAGE', res => {
       this.logs.push(res)
     })
 
-    io.on('progress', res => {
+    this.$socket.on('progress', res => {
       this.logs.push(res)
     })
 
-    io.on('failed', res => {
+    this.$socket.on('failed', res => {
       // console.log(res);
       this.logs.push(res)
       this.isCompleted = true
     })
 
-    io.on('scan_completed', res => {
+    this.$socket.on('scan_completed', res => {
       this.logs.push(res)
       this.isCompleted = true
     })

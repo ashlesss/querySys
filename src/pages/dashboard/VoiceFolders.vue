@@ -95,6 +95,10 @@ export default {
         }
     },
 
+    mounted() {
+        document.title = 'DashBoard | Storage'
+    },
+
     methods: {
         requestConfig() {
             this.$axios.get('/api/config/admin')

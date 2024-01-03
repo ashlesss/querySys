@@ -34,6 +34,10 @@ export default {
         }
     },
 
+    mounted() {
+        document.title = 'Login'
+    },
+
     methods: {
         onSubmit() {
             this.$axios.post('/api/auth/me', {

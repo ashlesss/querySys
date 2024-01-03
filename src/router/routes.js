@@ -8,7 +8,6 @@ const routes = [
       { path: 'works', name:'works', component: () => import('pages/WorksLib.vue')},
       { path: 'QueryMain', component: () => import('pages/QueryMain.vue')},
       { path: 'work/:id', name: 'WorkDetail' ,component: () => import('pages/WorkDetail.vue')},
-      { path: 'dashboard', component: () => import('pages/DashBoard.vue')},
       { path: 'testpage', component: () => import('pages/TestPage.vue')}
     ]
   },
@@ -17,7 +16,7 @@ const routes = [
     component: () => import('layouts/DashboardLayout.vue'),
     children: [
       { path: '', component: () => import('pages/dashboard/VoiceFolders.vue')},
-      { path: '/admin/scanner', component: () => import('pages/DashBoard.vue')}
+      { path: '/admin/scanner', component: () => import('pages/dashboard/ScanPage.vue')}
     ]
   },
   {

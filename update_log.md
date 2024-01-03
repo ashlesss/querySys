@@ -4,6 +4,8 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 
 1. Fix bugs on displaying page title on `WorkDetail` page.
 2. Make the search feature compatible with backend.
+3. Create socket.io object on boot. Connect socket when enter scanner page and disconnect after leaves scanner page.
+4. Add document title to pages.
 
 ## 12/28/2023
 
