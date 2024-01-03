@@ -3,15 +3,24 @@ export default {
         parseKeywords(keywords) {
             const regex = /^(\$[^$]+:[^$]+\$)|\s(\$[^$]+:[^$]+\$)/g
             let matched = keywords.match(regex)
+        
+            if (!matched) {
+                const array = keywords.trim().split(' ')
+                return {
+                    accurateSearchTerms: [],
+                    plainKeywords: array.join(' ')
+                }
+            }
+        
             matched = matched.map(kw => kw.trim())
-
+        
             const plainKeywords = matched.reduce((acc, curr) => {
                 return acc.replace(curr, '')
             }, keywords)
-
+        
             return {
                 accurateSearchTerms: this.splitKeywords(matched),
-                plainKeywords
+                plainKeywords: plainKeywords.trim()
             }
         },
 

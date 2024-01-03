@@ -34,7 +34,7 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
     haveSubtitle: false,
     userSetCurrentSubtitleIndex: -1,
     pipEnable: false,
-    currentCMPLyrics: null,
+    currentCMPLyrics: [],
     currentLrcLineNumber: 0
   }),
 

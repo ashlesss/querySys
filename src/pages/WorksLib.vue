@@ -118,6 +118,7 @@ export default defineComponent({
             totalWorks: 0,
             pageTitle: '',
             searchItems: [],
+            plainKeywords: '',
             tempList: [],
             tempKeyword: '',
             isLoading: false,
@@ -373,7 +374,7 @@ export default defineComponent({
                 this.works= []
                 this.getSearchItem()
                 // console.log('resetPageTitleUrl: ' + this.url);
-                this.pageTitle = this.searchItems.length === 0 ? `Search by ${this.$route.query.keyword}` : `Search by `
+                this.pageTitle = `Search by `
                 this.requestWorks()
             }
             else {
@@ -401,11 +402,11 @@ export default defineComponent({
             // const srMatched = this.$route.query.keyword.match(/\$(va|circle):([^\$\s]+)\$/g)
             const keyword = this.$route.query.keyword || ''
 
-            const srMatched = this.parseKeywords(keyword).accurateSearchTerms
-            console.log(srMatched);
+            const srMatched = this.parseKeywords(keyword)
+            this.plainKeywords = srMatched.plainKeywords.trim()
             this.searchItems = []
-            if (srMatched.length) {
-                srMatched.forEach(match => {
+            if (srMatched.accurateSearchTerms.length) {
+                srMatched.accurateSearchTerms.forEach(match => {
                     this.searchItems.push({
                         name: `${match.term}:${match.keyword}`,
                         raw: match,
@@ -456,12 +457,17 @@ export default defineComponent({
                 // console.log(this.tempList, this.tempKeyword);
                 // console.log(this.tempList);
                 // console.log(this.tempKeyword);
-                this.$router.push(`/works?keyword=${encodeURIComponent(this.tempKeyword)}`)
+                this.$router.push(`/works?keyword=${encodeURIComponent(this.tempKeyword + this.plainKeywords)}`)
                 this.tempList = []
                 this.tempKeyword = ''
             }
             else {
-                this.$router.push(`/works`)
+                if (this.plainKeywords !== '') {
+                    this.$router.push(`/works?keyword=${encodeURIComponent(this.plainKeywords)}`)
+                }
+                else {
+                    this.$router.push(`/works`)
+                }
                 this.tempList = []
                 this.tempKeyword = ''
             }

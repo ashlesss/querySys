@@ -287,6 +287,7 @@ export default {
                     this.SET_CURRENT_LYRIC_LINE_NUMBER(line)
                 },
                 onSetLyric: (lines) => {
+                    // lines are in String[]
                     this.SET_CURR_CMP_LYRICS(lines)
                     // console.log(this.currentCMPLyrics);
                 }

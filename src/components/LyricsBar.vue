@@ -28,7 +28,7 @@
                     :class="{ 'text-bold': index === this.currentLrcLineNumber }"
                     :id="index === this.currentLrcLineNumber ? 'currentLyricEl' : ''">
                         <br>
-                        {{ line.text }}
+                        {{ millisecondsToLRC(line.time) }}{{ line.text }}
                     </div>
                 </div>
                 
@@ -63,25 +63,10 @@ export default {
 
         lyricContentDisplay() {
             return this.currentCMPLyrics.map(line => ({
-                text: sanitizeHtml(line.text.trim())
+                text: sanitizeHtml(line.text.trim()),
+                time: line.time
             }));
-
-        // lyricContentDisplay() {
-        //     return this.currentCMPLyrics ? this.currentCMPLyrics
-        //         .trim()
-        //         .replace(/[\r\n]/g, '<br>')
-        //         .split('<br>')
-        //         .map(line => sanitizeHtml(line))
-        //         .join('<br>')
-        //         .replace(
-        //         sanitizeHtml(this.currentLyric),
-        //         `<span id="currentLyricEl" class="text-weight-bolder" style="font-size: 1.2em">${sanitizeHtml(
-        //             this.currentLyric
-        //         )}</span>`
-        //         )
-        //     : '';
-        // }
-}
+        }
     },
 
     // watch: {
@@ -119,6 +104,19 @@ export default {
     methods: {
         handleDrag({ target, transform }) {
             target.style.transform = transform;
+        },
+
+        millisecondsToLRC(milliseconds) {
+            let totalSeconds = parseInt(milliseconds) / 1000;
+
+            let minutes = Math.floor(totalSeconds / 60);
+
+            let remainingSeconds = totalSeconds - (minutes * 60);
+
+            let formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
+            let formattedSeconds = remainingSeconds.toFixed(2).padStart(5, "0");
+
+            return `[${formattedMinutes}:${formattedSeconds}]`;
         }
     },
 }

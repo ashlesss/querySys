@@ -1,5 +1,10 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 1/3/2023
+
+1. Fix bugs on displaying page title on `WorkDetail` page.
+2. Make the search feature compatible with backend.
+
 ## 12/28/2023
 
 1. Refactor the search tags.
