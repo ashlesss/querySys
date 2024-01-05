@@ -201,8 +201,12 @@ export default {
 
             if (this.playing && this.player.currentTime !== this.player.duration) {
                 this.player.play()
-                this.playLrc(this.playing)
-                console.log('lrc playing');
+
+                if (this.currentCMPLyrics.length) {
+                    this.playLrc(this.playing)
+                    console.log('lrc playing');
+                }
+                
             } 
         },
 
@@ -308,6 +312,16 @@ export default {
                     })
                     const highestPercentage = subFiles.reduce((max, obj) => max.percentage > obj.percentage ? max : obj);
                     console.log(highestPercentage);
+                    if (highestPercentage.percentage === 0) {
+                        console.log('Auto selected subtitle match percentage is 0, let user decide which subtitle to use.');
+                        // Since the work has subtitle
+                        this.SET_HAVE_SUBTITLE(true)
+
+                        // In case when user switch from auto selected subtitle works
+                        this.lrcObj.setLyric('')
+                        this.SET_CURRENT_LYRIC('')
+                        return
+                    }
                     const currSubIndex = subFiles.findIndex(item => item.mediaStreamUrl === highestPercentage.mediaStreamUrl)
                     this.SET_CURR_SUB_INDEX(currSubIndex)
                     this.SET_HAVE_SUBTITLE(true)

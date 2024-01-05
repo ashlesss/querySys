@@ -1,6 +1,12 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
-## 1/3/2023
+# 1/4/2024
+
+1. Modulize subtitle utilities.
+2. Don't show VA tags when there is no va info.
+3. Apply new player skin by [number17](https://github.com/Number178/kikoeru-quasar)
+
+## 1/3/2024
 
 1. Fix bugs on displaying page title on `WorkDetail` page.
 2. Make the search feature compatible with backend.

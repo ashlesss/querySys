@@ -6,14 +6,6 @@
         :img="workInfo.work_main_img" 
     />
     <div class="column justify-center items-center q-pa-sm">
-        
-        <!-- Work's image -->
-        <!-- <q-img
-            :src="getImgUrl"
-            :ratio="4/3"
-            style="max-width: 560px;"
-            transition="fade"
-        /> -->
 
         <div class="text-h6 text-weight-regular">
             {{ workInfo.work_title }}
@@ -75,6 +67,7 @@
         <!-- VA -->
         <div class="row">
             <router-link
+                v-show="workInfo.vas.vas[0].va_name"
                 v-for="(va, index) in workInfo.vas.vas"
                 :key="index"
                 :to="`/works?keyword=${encodeURIComponent(`$va:` + va.va_name + `$`)}`"

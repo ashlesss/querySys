@@ -80,6 +80,7 @@
       <!-- VAs -->
       <div class="q-mx-xs q-my-sm">
         <router-link
+          v-show="work.vas.vas[0].va_name"
           v-for="(va, index) in work.vas.vas"
           :key="index"
           :to="`/works?keyword=${encodeURIComponent(`$va:` + va.va_name + `$`)}`"

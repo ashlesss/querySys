@@ -1,35 +1,135 @@
 <template>
     <div>
         <q-slide-transition>
-            <q-card square v-show="currentPlayingFile.hash && !this.GET_HIDE" class="fixed-bottom-right bg-white text-black audio-player" @mousewheel.prevent @touchmove.prevent>
-                <div class="bg-dark row items-center albumart relative-position">
-                    <q-img contain transition="fade" :src="coverUrl" :ratio="4/3"/>
-                    <q-btn dense round size="md" color="white" text-color="dark" 
-                        icon="keyboard_arrow_down" @click="TOGGLE_HIDE()" class="absolute-top-left q-ma-sm" 
+            <q-card 
+                square 
+                v-show="currentPlayingFile.hash && !this.GET_HIDE" 
+                class="fixed-bottom-right text-black audio-player q-pa-sm" 
+                @mousewheel.prevent 
+                @touchmove.prevent
+                v-touch-swipe.mouse="evt => evt.direction === 'down' && this.TOGGLE_HIDE()"
+                draggable="false"
+            >
+
+                <!--顶部小横条-->
+                <div
+                    class="pull-handler non-selectable"
+                    @click="this.TOGGLE_HIDE()"
+                />
+
+                <!-- 音声封面 -->
+                <div class="row items-center albumart q-mt-lg q-pa-sm relative-position flippable-cover-container non-selectable"
+                >
+                    <q-img
+                        contain
+                        class="rounded-borders shadow-2"
+                        transition="fade"
+                        :src="coverUrl"
+                        :ratio="4/3"
+                        @dblclick.prevent="openWorkDetail()"
+                    >
+                    </q-img>
+
+                </div>
+
+                <!-- 标题 -->
+                <div class="text-center q-mb-sm column non-selectable">
+                    <OverflowScroll :stop="hide" class="full-width">
+                        <span class="ellipsis-2-lines text-bold q-pb-xs text-black" style="color: black">
+                            {{ currentPlayingFile.title }}
+                        </span>
+                    </OverflowScroll>
+
+                    <OverflowScroll :stop="hide" class="full-width non-selectable">
+                        <span class="text-caption" style="opacity: 0.54">
+                            {{ currentPlayingFile.workTitle }}
+                        </span>
+                    </OverflowScroll>
+                </div>
+
+                <!-- 进度条控件 -->
+                <div class="row items-center q-mx-sm q-mb-sm non-selectable">
+                    <div class="col-auto relative-position">{{ formatSeconds(currentTime) }}</div>
+                    <AudioElement class="col" />
+                    <PiPSubtitle/>
+                    <div class="col-auto relative-position">{{ formatSeconds(duration) }}</div>
+                </div>
+
+                <!-- 播放按钮控件 -->
+                <div class="row justify-around" style="height: 65px">
+                    <q-btn flat dense class="col-auto" size="lg"   icon="skip_previous" @click="this.PREVIOUS_TRACK()" style="width: 55px" />
+                    <q-btn flat dense class="col-auto" size="lg"   :icon="rewindIcon" @click="this.SET_REWIND_SEEK_MODE(true)" style="width: 55px" />
+                    <q-btn flat dense class="col-auto" size="28px" :icon="playingIcon" @click="this.TOGGLE_PLAYING()" style="width: 65px" />
+                    <q-btn flat dense class="col-auto" size="lg"   :icon="forwardIcon" @click="this.SET_FORWARD_SEEK_MODE(true)" style="width: 55px" />
+                    <q-btn flat dense class="col-auto" size="lg"   icon="skip_next" @click="this.NEXT_TRACK()" style="width: 55px" />
+                </div>
+
+                 <!-- 音量控件 -->
+                <!-- HTML5 volume in iOS is read-only -->
+                <div class="row items-center q-mx-lg q-pt-sm">
+                    <q-icon name="volume_down" size="sm" class="col-auto" />
+                    <q-slider
+                        :disable="$q.platform.is.ios"
+                        v-model="volume"
+                        :min="0"
+                        :max="1"
+                        :step="0.01"
+                        tooltip="none"
+                        class="col"
+                        style="margin-left: 0.5em; margin-right: 0.5em"
+                    />
+                    <q-icon name="volume_up" size="sm" class="col-auto" />
+                </div>
+
+                <!-- 底部菜单 -->
+                <div class="row self-center">
+                    <!-- 打开播放队列 -->
+                    <q-btn
+                        flat
+                        dense
+                        size="md"
+                        class="q-ma-sm"
+                        icon="queue_music"
+                        @click="showCurrentPlayList = !showCurrentPlayList"
                     />
 
-                    <q-btn dense round size="md" color="white" text-color="dark" icon="more_vert" class="absolute-top-right q-ma-sm">
-                        <q-menu anchor="bottom right" self="top right">
-                            <q-item clickable v-ripple @click="hideSeekButton = !hideSeekButton">
-                                <q-item-section avatar>
-                                    <q-icon :name="hideSeekButton ? 'check_box' : 'check_box_outline_blank'" />
-                                </q-item-section>
+                    <q-btn
+                        flat
+                        dense
+                        size="md"
+                        class="q-ma-sm"
+                        :icon="playModeIcon"
+                        @click="this.CHANGE_PLAY_MODE()"
+                    />
 
-                                <q-item-section>
-                                    Hide Cover Buttons
-                                </q-item-section>
-                            </q-item>
+                    <!-- 启动桌面字幕 -->
+                    <q-btn
+                        flat dense size="md"
+                        class="q-ma-sm"
+                        icon="picture_in_picture_alt"
+                        :color="pipEnable ? 'primary' : 'dark'"
+                        @click="togglePiP"
+                    />
 
-                            <q-item clickable v-ripple @click="swapSeekButton = !swapSeekButton">
-                                <q-item-section avatar>
-                                    <q-icon :name="swapSeekButton ? 'check_box' : 'check_box_outline_blank'" />
-                                </q-item-section>
+                    <!-- 字幕按钮 -->
+                    <q-btn
+                        v-show="haveSubtitle"
+                        flat dense size="md"
+                        class="q-ma-sm"
+                        icon="subtitles"
+                        @click="showSubtitleList = !showSubtitleList"
+                        :color="showSubtitleList ? 'primary' : 'dark'"
+                    />
 
-                                <q-item-section>
-                                    Change Control buttons
-                                </q-item-section>
-                            </q-item>
-
+                    <!-- 更多设置 -->
+                    <q-btn
+                        flat dense
+                        size="md"
+                        class="q-ma-sm"
+                        color="color" 
+                        icon="more_horiz"
+                    >
+                        <q-menu>
                             <q-item clickable v-ripple @click="openWorkDetail()" v-close-popup>
                                 <q-item-section avatar>
                                     <q-icon name="link" />
@@ -41,104 +141,11 @@
                             </q-item>
                         </q-menu>
                     </q-btn>
-
-                    <div class="row absolute q-pl-md q-pr-md col-12 justify-between">
-                        <q-btn v-if="!hideSeekButton" round size="lg" color="white" text-color="dark" 
-                            style="opacity: 0.8" 
-                            @click="swapSeekButton ? this.PREVIOUS_TRACK() : this.SET_REWIND_SEEK_MODE(true)" 
-                            :icon="swapSeekButton ? 'skip_previous': rewindIcon" 
-                        />
-                        <q-btn v-if="!hideSeekButton" round size="lg" color="white" text-color="dark" 
-                            style="opacity: 0.8" 
-                            @click="swapSeekButton ? this.NEXT_TRACK() : this.SET_FORWARD_SEEK_MODE(true)" 
-                            :icon="swapSeekButton ? 'skip_next' : forwardIcon" 
-                        />
-                    </div>
-
-                    <q-btn dense round size="md" color="white" text-color="dark" 
-                        icon="picture_in_picture_alt" @click="togglePiP" 
-                        class="absolute-bottom-left q-ma-sm" 
-                        v-show="haveSubtitle"
-                    />
-
-                    <q-btn dense round size="md" color="white" text-color="dark" 
-                        icon="subtitles" @click="showSubtitleList = !showSubtitleList" 
-                        class="absolute-bottom-right q-ma-sm" 
-                        v-show="haveSubtitle"
-                    />
-                    
-                </div>
-
-                <!-- Player progress bar -->
-                <div class="row items-center q-mx-sm q-my-sm" style="height: 40px">
-                    <div class="col-auto">{{ formatSeconds(currentTime) }}</div>
-                    <AudioElement class="col" />
-                    <PiPSubtitle />
-                    <div class="col-auto">{{ formatSeconds(duration) }}</div>
                 </div>
 
                 <!-- Place holder for iOS -->
                 <div style="height: 5px" v-if="$q.platform.is.ios" />
 
-                <q-item style="height: 55px; padding: 0px 15px;" class="text-center non-selectable">
-                    <q-item-section>
-                        <q-item-label lines="2" class="text-bold">{{ currentPlayingFile.title }}</q-item-label>
-                        <q-item-label caption lines="1">{{ currentPlayingFile.workTitle }}</q-item-label>
-                    </q-item-section>
-                </q-item>
-
-                <!-- Place holder for iOS -->
-                <div  style="height: 10px" v-if="$q.platform.is.ios" />
-
-                <!-- Player control buttons -->
-                <div class="row justify-around" style="height: 65px">
-                    <q-btn flat dense size="md" 
-                        icon="queue_music" 
-                        @click="showCurrentPlayList = !showCurrentPlayList" 
-                        style="width: 55px" 
-                        class="col-auto" 
-                    />
-                    <q-btn flat dense size="lg" 
-                        :icon="swapSeekButton ? rewindIcon : 'skip_previous'" 
-                        @click="swapSeekButton ? this.SET_REWIND_SEEK_MODE(true) : this.PREVIOUS_TRACK()" 
-                        style="width: 55px" 
-                        class="col-auto" 
-                    />
-                    <q-btn flat dense size="28px" 
-                        :icon="playingIcon" 
-                        @click="this.TOGGLE_PLAYING()" 
-                        style="width: 65px" 
-                        class="col-auto" 
-                    />
-                    <q-btn flat dense size="lg" 
-                        :icon="swapSeekButton ? forwardIcon : 'skip_next'" 
-                        @click="swapSeekButton ? this.SET_FORWARD_SEEK_MODE(true) : this.NEXT_TRACK()" 
-                        style="width: 55px" 
-                        class="col-auto" 
-                    />
-                    <q-btn flat dense size="md" 
-                        :icon="playModeIcon" 
-                        @click="this.CHANGE_PLAY_MODE()" 
-                        style="width: 55px" 
-                        class="col-auto" 
-                    />
-                </div>
-
-                <!-- Volume control -->
-                <!-- HTML5 volume in iOS is read-only -->
-                <div class="row items-center q-mx-lg" style="height: 50px" v-if="!$q.platform.is.ios">
-                    <q-icon name="volume_down" size="sm" class="q-mr-sm col-auto" />
-
-                    <q-slider
-                        v-model="volume"
-                        :min="0.0"
-                        :max="1.0"
-                        :step="0"
-                        class="col"
-                    />
-
-                    <q-icon name="volume_up" size="sm" class="q-ml-sm col-auto" />
-                </div>
             </q-card>
         </q-slide-transition>
 
@@ -251,6 +258,8 @@ import { useAudioPlayerStore } from '../stores/audioPlayer'
 import AudioElement from './AudioElement.vue'
 import draggable from 'vuedraggable'
 import PiPSubtitle from './PiPSubtitle.vue'
+import OverflowScroll from './OverflowScroll.vue'
+import { ref } from 'vue'
 
 export default {
     name: 'AudioPlayer',
@@ -258,7 +267,22 @@ export default {
     components: {
         AudioElement,
         draggable,
-        PiPSubtitle
+        PiPSubtitle,
+        OverflowScroll
+    },
+
+    setup() {
+        const info = ref(null)
+
+        return {
+            info,
+            handleSwipe ({ evt, ...newInfo }) {
+                info.value = newInfo
+
+                // native Javascript event
+                console.log(evt)
+            }
+        }
     },
 
     data() {
@@ -287,11 +311,16 @@ export default {
                 this.editCurrentPlayList = false
             }
         },
+
+        hide(evt) {
+            console.log(evt);
+        }
     },
 
     computed: {
         ...mapState(useAudioPlayerStore, [
             'currentPlayingFile',
+            'hide',
             'GET_HIDE',
             'NEXT_TRACK',
             'rewindSeekTime',
@@ -488,24 +517,32 @@ export default {
 
 <style lang="scss" scoped>
     .audio-player {
-        // Width > $breakpoint-sm-min
+        overflow: hidden;
+
+        /* flex布局，让封面占据主要空间，其余空间留给其他控件 */
+        display: flex;
+        flex-direction: column;
+
+        // 宽度 > $breakpoint-sm-min
         @media (min-width: $breakpoint-sm-min) {
-            width: 330px;
-            margin: 0px 10px 10px 0px;
+        width: 330px;
+        margin: 0px 10px 10px 0px;
         }
-        // Width < $breakpoint-xs-max (599px)
+        // 宽度 < $breakpoint-xs-max (599px)
         @media (max-width: $breakpoint-xs-max) {
-            width: 100%;
-            height: 100%;
+        width: 100%;
+        height: 100%;
         }
     }
 
     .albumart {
-        // Width < $breakpoint-xs-max (599px)
+        // 宽度 < $breakpoint-xs-max (599px)
         @media (max-width: $breakpoint-xs-max) {
             width: 100%;
-            height: calc(100% - 230px);
         }
+
+        /* 播放控件中，封面占据几乎所有剩余空间，将其他控件挤到底部去 */
+        flex-grow: 1;
     }
 
     .current-play-list {
@@ -519,5 +556,44 @@ export default {
         @media (max-width: $breakpoint-xs-max) {
         min-width: 280px;
         }
+    }
+
+    .pull-handler {
+        height: 6px;
+        width: 100px;
+        background: rgba(150, 122, 116, 0.5);
+        position: absolute;
+        border-radius: 4px !important;
+        //overflow: hidden;
+        left: 50%;
+        top: 12px;
+        transform: translateX(-50%);
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+    .pull-handler:hover {
+        transition: 0.3s;
+        background: rgba(150, 122, 116, 0.8);
+    }
+
+    .pull-handler:hover {
+            transition: 0.3s;
+            background: rgba(150, 122, 116, 0.8);
+    }
+
+     // 增大可点击范围
+    .pull-handler:before {
+        content: "";
+        position: absolute;
+        left: -50px;
+        right: -50px;
+        top: -10px;
+        bottom: -10px;
+        cursor: pointer;
+    }
+
+    .title {
+        color: black !important
     }
 </style>
