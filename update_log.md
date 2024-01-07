@@ -1,5 +1,9 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 1/7/2024
+
+1. Don't show PiP subtitle icon when there is no lyric file to current track.
+
 # 1/4/2024
 
 1. Modulize subtitle utilities.

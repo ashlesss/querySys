@@ -34,11 +34,11 @@
 
                 <!-- 标题 -->
                 <div class="text-center q-mb-sm column non-selectable">
-                    <OverflowScroll :stop="hide" class="full-width">
-                        <span class="ellipsis-2-lines text-bold q-pb-xs text-black" style="color: black">
-                            {{ currentPlayingFile.title }}
-                        </span>
-                    </OverflowScroll>
+                    <div
+                        class="ellipsis-2-lines text-bold q-pb-xs"
+                    >
+                        {{ currentPlayingFile.title }}
+                    </div>
 
                     <OverflowScroll :stop="hide" class="full-width non-selectable">
                         <span class="text-caption" style="opacity: 0.54">
@@ -104,6 +104,7 @@
 
                     <!-- 启动桌面字幕 -->
                     <q-btn
+                        v-show="currentLyric !== ''"
                         flat dense size="md"
                         class="q-ma-sm"
                         icon="picture_in_picture_alt"
@@ -283,6 +284,10 @@ export default {
                 console.log(evt)
             }
         }
+    },
+
+    mounted() {
+        console.log(this.currentPlayingFile);
     },
 
     data() {
