@@ -136,6 +136,7 @@
 
       <DownloadCard />
       <!-- <AudioPlayer /> -->
+      <PiPSubtitle />
     <q-page-container>
       <!-- <router-view /> -->
       <!-- :key="this.$route.path" -->
@@ -164,7 +165,7 @@
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, defineAsyncComponent } from 'vue';
 import { mapState, mapActions } from 'pinia'
 import { useDownloadCardStore } from '../stores/downloadCard'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
@@ -187,6 +188,7 @@ export default defineComponent({
     AudioPlayer,
     PlayerBar,
     LyricsBar,
+    PiPSubtitle: defineAsyncComponent(() => import('../components/PiPSubtitle.vue'))
   },
 
   data() {

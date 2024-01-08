@@ -176,6 +176,10 @@ export default{
         //     this.$emit('path_up', this.path)
         // },
 
+        // fatherFolder(folder) {
+        //     console.log(folder);
+        // },
+
         $route(data) {
             if (data.query && data.query.path) {
                 // console.log(JSON.parse(data.query.path));

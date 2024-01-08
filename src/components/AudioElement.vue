@@ -1,6 +1,7 @@
 <template>
     <div>
         <vue-plyr ref="plyr" 
+            :options="options"
             @canplay="onCanPlay()"
             @timeupdate="timeUpdate()"
             @ended="onEnded()"
@@ -34,7 +35,10 @@ export default {
     data() {
         return {
             lrcObj: null,
-            lrcAvailable: false
+            lrcAvailable: false,
+            options: {
+                controls: ['progress']
+            }
         }
     },
 
@@ -55,7 +59,8 @@ export default {
             'userSetCurrentSubtitleIndex',
             'pipEnable',
             'currentLyric',
-            'currentCMPLyrics'
+            'currentCMPLyrics',
+            'isVideoMode'
         ]),
 
         ...mapState(useSubtitleFiles, [
@@ -68,7 +73,10 @@ export default {
 
         source() {
             if (this.currentPlayingFile.mediaStreamUrl) {
-                // console.log(this.currentPlayingFile.mediaStreamUrl);
+                if (this.currentPlayingFile.title.substring(this.currentPlayingFile.title.lastIndexOf(".")).match(/\bmp4\b|\bavi\b|/i)) {
+                    this.SET_VIDEO_MODE(true)
+                }
+                
                 const token = this.$q.localStorage.getItem('jwt-token') ? `?token=${this.$q.localStorage.getItem('jwt-token')}` : ''
                 return `${this.currentPlayingFile.mediaStreamUrl}${token}`
             } else if (this.currentPlayingFile.hash) {
@@ -183,7 +191,8 @@ export default {
             'NEXT_TRACK',
             'SET_CURR_CMP_LYRICS',
             'RESET_SUB_DATA',
-            'SET_CURRENT_LYRIC_LINE_NUMBER'
+            'SET_CURRENT_LYRIC_LINE_NUMBER',
+            'SET_VIDEO_MODE'
         ]),
 
         onWaiting() {

@@ -35,7 +35,8 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
     userSetCurrentSubtitleIndex: -1,
     pipEnable: false,
     currentCMPLyrics: [],
-    currentLrcLineNumber: 0
+    currentLrcLineNumber: 0,
+    isVideoMode: false
   }),
 
   getters: {
@@ -259,6 +260,10 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       this.currentCMPLyrics = ''
       this.currentLyric = ''
       this.haveSubtitle = false
+    },
+
+    SET_VIDEO_MODE(mode) {
+      this.isVideoMode = mode
     }
-  }
+  },
 })

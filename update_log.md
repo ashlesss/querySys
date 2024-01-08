@@ -1,5 +1,10 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 1/8/2024
+
+1. Add video player page for playing video. (not complete)
+2. Remove some repeat values in `subtitle.js`.
+
 ## 1/7/2024
 
 1. Don't show PiP subtitle icon when there is no lyric file to current track.

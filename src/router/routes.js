@@ -8,7 +8,8 @@ const routes = [
       { path: 'works', name:'works', component: () => import('pages/WorksLib.vue')},
       { path: 'QueryMain', component: () => import('pages/QueryMain.vue')},
       { path: 'work/:id', name: 'WorkDetail' ,component: () => import('pages/WorkDetail.vue')},
-      { path: 'testpage', component: () => import('pages/TestPage.vue')}
+      { path: 'testpage', component: () => import('pages/TestPage.vue')},
+      { path: 'watch/:id', component: () => import('pages/VideoPlayerPage.vue')}
     ]
   },
   {

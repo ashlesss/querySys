@@ -11,7 +11,7 @@ export default boot(({ app }) => {
 
   app.use(VuePlyr, {
     plyr: {
-      controls: ['progress']
+      // controls: ['progress']
     }
   })
 

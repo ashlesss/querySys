@@ -51,7 +51,7 @@
                 <div class="row items-center q-mx-sm q-mb-sm non-selectable">
                     <div class="col-auto relative-position">{{ formatSeconds(currentTime) }}</div>
                     <AudioElement class="col" />
-                    <PiPSubtitle/>
+                    <!-- <PiPSubtitle/> -->
                     <div class="col-auto relative-position">{{ formatSeconds(duration) }}</div>
                 </div>
 
@@ -258,7 +258,7 @@ import { mapState, mapActions } from 'pinia'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
 import AudioElement from './AudioElement.vue'
 import draggable from 'vuedraggable'
-import PiPSubtitle from './PiPSubtitle.vue'
+// import PiPSubtitle from './PiPSubtitle.vue'
 import OverflowScroll from './OverflowScroll.vue'
 import { ref } from 'vue'
 
@@ -268,7 +268,7 @@ export default {
     components: {
         AudioElement,
         draggable,
-        PiPSubtitle,
+        // PiPSubtitle,
         OverflowScroll
     },
 
@@ -284,10 +284,6 @@ export default {
                 console.log(evt)
             }
         }
-    },
-
-    mounted() {
-        console.log(this.currentPlayingFile);
     },
 
     data() {
