@@ -32,7 +32,8 @@ module.exports = configure(function (/* ctx */) {
     boot: [
       'axios',
       'vue-plyr',
-      'socket.io'
+      'socket.io',
+      'sentry'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
@@ -66,8 +67,9 @@ module.exports = configure(function (/* ctx */) {
 
       vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
-      // vueDevtools,
+      // vueDevtools: true,
       // vueOptionsAPI: false,
+      sourcemap: true,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 

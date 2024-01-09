@@ -68,7 +68,13 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
       // const sortedSub = state.queue[this.queueIndex].subtitles
       //   .sort((a, b) => b.percentage - a.percentage)
       // return sortedSub
-      return state.queue[this.queueIndex].subtitles
+      if (state.queue.length) {
+        return state.queue[this.queueIndex].subtitles
+      }
+      else {
+        return []
+      }
+      
     },
 
   },

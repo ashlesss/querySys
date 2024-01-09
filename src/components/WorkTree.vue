@@ -32,7 +32,8 @@
                     <q-icon size="34px" v-else-if="item.type === 'text'" color="info" name="description" />
                     <q-icon size="34px" v-else-if="item.type === 'image'" color="orange" name="photo" />
                     <q-icon size="34px" v-else-if="item.type === 'other'" color="info" name="description" />
-                    <q-btn v-else round dense color="primary" :icon="playIcon(item.hash)" @click="onClickPlayButton(item.hash)" />
+                    <q-btn v-else-if="item.type === 'video'" round dense color="primary" :icon="playIcon(item.hash)" @click="onClickPlayButtonVideo(item.hash)" />
+                    <q-btn v-else round dense color="primary" :icon="playing" @click="onClickPlayButton(item.hash)" />
                     <!-- <q-btn v-else round dense color="primary" icon="play_arrow"/> -->
                 </q-item-section>
 
@@ -92,6 +93,7 @@
 import { mapState, mapActions } from 'pinia'
 import { useDownloadCardStore } from '../stores/downloadCard'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
+import { useVideoPlayerStore } from '../stores/videoPlayer'
 import { calSamePrc } from '../utils/subtitle'
 
 export default{
@@ -140,6 +142,14 @@ export default{
             'GET_QUEUE'
         ]),
 
+        ...mapState(useVideoPlayerStore, [
+            'videoMode',
+            'videoQueue',
+            'currentVideoFile',
+            'currentPlayingFileIndex',
+            'GET_VIDEO_QUEUE'
+        ]),
+
         // ...mapState(useSubtitleFiles, [
         //     'subtitleFiles'
         // ]),
@@ -167,6 +177,17 @@ export default{
             // console.log(queueLocal);
             // console.log('queue', queue);
             return queueLocal
+        },
+
+        videoQueueLocal() {
+            const videoQueueLocal = []
+            this.fatherFolder.forEach(item => {
+                if (item.type === 'video') {
+                    videoQueueLocal.push(item)
+                }
+            })
+
+            return videoQueueLocal
         }
     },
 
@@ -247,6 +268,13 @@ export default{
             'SET_SUB_FILES'
         ]),
 
+        ...mapActions(useVideoPlayerStore, [
+            'SET_VIDEO_MODE',
+            'SET_VIDEO_QUEUE',
+            'SET_CURRENT_VIDEO_FILE',
+            'SET_CURRENT_PLAYING_VIDEO_FILE_INDEX'
+        ]),
+
         getUserPlatform() {
             if (this.userAgent.includes('Win')) {
                 this.userPlatform = 'Windows'
@@ -271,8 +299,16 @@ export default{
             else if (item.type ==='text' || item.type === 'image') {
                 this.openFile(item)
             }
-            else if (item.type === 'other' || item.type === 'mp4') {
+            else if (item.type === 'other') {
                 this.download(item);
+            }
+            else if (item.type === 'video') {
+                this.SET_VIDEO_QUEUE({
+                    queue: this.videoQueueLocal.concat(),
+                    index: this.videoQueueLocal.findIndex(file => file.hash === item.hash),
+                    resetPlaying: true
+                })
+                this.$router.push(`/watch/${item.hash.split('/')[0]}?hash=${item.hash.split('/')[1]}`)
             }
             else if (this.currentPlayingFile.hash !== item.hash) {
                 this.SET_QUEUE({
@@ -293,6 +329,14 @@ export default{
                     resetPlaying: true
                 })
             }
+        },
+
+        onClickPlayButtonVideo (hash) {
+            this.SET_VIDEO_QUEUE({
+                queue: this.queueLocal.concat(),
+                index: this.queueLocal.findIndex(file => file.hash === hash),
+                resetPlaying: true
+            })
         },
 
         playIcon (hash) {

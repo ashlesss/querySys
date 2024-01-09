@@ -34,7 +34,7 @@
                         <q-item
                             clickable
                             v-ripple
-                            :active="queueIndex === index"
+                            :active="currentPlayingFileIndex === index"
                             active-class="text-white bg-teal"
                             class="non-selectable"
                             style="height: 48px; padding: 0px 10px;"
@@ -42,7 +42,7 @@
                         >
                             <q-item-section side v-show="editCurrentPlayList">
                                 <q-icon name="clear" 
-                                    :color="queueIndex === index ? 'white' : 'red'" 
+                                    :color="currentPlayingFileIndex === index ? 'white' : 'red'" 
                                     @click="removeFromQueue(index)" 
                                 />
                             </q-item-section>
@@ -61,7 +61,7 @@
                             </q-item-section>
 
                             <q-item-section side class="handle" v-show="editCurrentPlayList">
-                                <q-icon name="reorder" :color="queueIndex === index ? 'white' : 'dark'" />
+                                <q-icon name="reorder" :color="currentPlayingFileIndex === index ? 'white' : 'dark'" />
                             </q-item-section>
                         </q-item>
                     </div>
@@ -75,7 +75,7 @@
 <script>
 import draggable from 'vuedraggable'
 import { mapState, mapActions } from 'pinia'
-import { useAudioPlayerStore } from '../stores/audioPlayer'
+import { useVideoPlayerStore } from '../stores/videoPlayer'
 
 export default {
     
@@ -83,85 +83,75 @@ export default {
         draggable
     },
 
-    props: {
-        queue: {
-            type: Object,
-            required: true
-        }
+    mounted() {
+        this.queueCopy = this.videoQueue
+        // console.log(this.videoQueue);
     },
 
     data() {
         return {
             editCurrentPlayList: false,
-            queueCopy: []
+            queueCopy: this.videoQueue
         }
     },
 
     watch: {
-        queue(val) {
-            this.queueCopy = val.videoQueue
+        videoQueue(val) {
+            this.queueCopy = val
         }
     },
 
     computed: {
-        ...mapState(useAudioPlayerStore, [
-            'currentPlayingFile',
-            'hide',
-            'GET_HIDE',
-            'NEXT_TRACK',
-            'rewindSeekTime',
-            'forwardSeekTime',
-            'currentTime',
-            'duration',
-            'playing',
-            'playMode',
-            'GET_VOLUME',
-            'GET_QUEUE',
-            'queueIndex',
-            'GET_QUEUE_SUB',
-            'currentSubtitleIndex',
-            'haveSubtitle',
-            'currentLyric',
-            'pipEnable',
+        ...mapState(useVideoPlayerStore, [
+            'videoQueue',
+            'currentPlayingFileIndex'
         ]),
     },
 
     methods: {
-        ...mapActions(useAudioPlayerStore, [
-            'TOGGLE_HIDE',
-            'PREVIOUS_TRACK',
-            'SET_REWIND_SEEK_MODE',
-            'SET_FORWARD_SEEK_MODE',
-            'TOGGLE_PLAYING',
-            'CHANGE_PLAY_MODE',
-            'SET_VOLUME',
-            'EMPTY_QUEUE',
-            'SET_TRACK',
-            'REMOVE_FROM_QUEUE',
-            'SET_QUEUE',
-            'SET_USER_SELECT_SUB_INDEX',
-            'SET_PIP_ENABLE',
-            'PAUSE',
-            'PLAY'
+        ...mapActions(useVideoPlayerStore, [
+            'SET_VIDEO_TRACK',
+            'EMPTY_VIDEO_QUEUE',
+            'REMOVE_FROM_VIDEO_QUEUE',
+            'SET_VIDEO_QUEUE'
         ]),
 
         emptyQueue () {
-            this.EMPTY_QUEUE()
+            this.EMPTY_VIDEO_QUEUE()
         },
 
         onClickTrack (index) {
             if (!this.editCurrentPlayList) {
-                this.SET_TRACK(index)
+                this.SET_VIDEO_TRACK(index)
                 this.showCurrentPlayList = false
             }
         },
 
         removeFromQueue (index) {
-            this.REMOVE_FROM_QUEUE(index)
+            this.REMOVE_FROM_VIDEO_QUEUE(index)
         },
 
         samCoverUrl (hash) {
             return hash ? `/api/static/img/${hash.split('/')[0]}_img_main.jpg` : ''
+        },
+
+        onMoved(moved) {
+            let index = null
+            if (moved.oldIndex === this.currentPlayingFileIndex) {
+                index = moved.newIndex
+            } else if (moved.oldIndex < this.currentPlayingFileIndex && moved.newIndex >= this.currentPlayingFileIndex) {
+                index = this.currentPlayingFileIndex - 1
+            } else if (moved.oldIndex > this.currentPlayingFileIndex && moved.newIndex <= this.currentPlayingFileIndex) {
+                index = this.currentPlayingFileIndex + 1
+            } else {
+                index = this.currentPlayingFileIndex
+            }
+        
+            this.SET_VIDEO_QUEUE({
+                queue: this.queueCopy.concat(),
+                index: index,
+                resetPlaying: false
+            })
         },
     }
 }

@@ -12,45 +12,58 @@
     
 </template>
 <script>
+import { mapState, mapActions } from 'pinia'
+import { useVideoPlayerStore } from '../stores/videoPlayer'
+
 export default {
-    props: {
-        queue: {
-            type: Object,
-            required: true
-        },
-    },
+
+    // mounted() {
+    //     this.SET_CURRENT_VIDEO_FILE(this.queue.currentVideoFile)
+    //     this.SET_VIDEO_QUEUE(this.queue.videoQueue)
+    // },
 
     data() {
         return {
-            localQueue: this.queue,
-
+            localCurrentPlayingFile: this.currentVideoFile
         }
     },
 
+    mounted() {
+        this.localCurrentPlayingFile = this.currentVideoFile
+    },
+
     watch: {
-        queue(val) {
-            this.localQueue = val
+        currentVideoFile(val) {
+            this.localCurrentPlayingFile = val
         },
 
         source(url) {
             if (url) {
-                console.log(url);
                 this.resetPlayer()
                 this.player.media.load();
+                console.log(url);
+                this.$router.push(
+                    `${this.$route.params.id}?hash=${this.localCurrentPlayingFile.hash.split('/')[1]}`
+                )
             }
         }
     },
 
     computed: {
+        ...mapState(useVideoPlayerStore, [
+            'videoMode',
+            'videoQueue',
+            'currentVideoFile',
+            'currentPlayingFileIndex'
+        ]),
+
         source() {
-            if (this.localQueue.videoQueue) {
-                return this.localQueue
-                .videoQueue.find(video => video.hash === this.localQueue.currentVideoFile.hash).mediaStreamUrl
+            if (this.localCurrentPlayingFile) {
+                return this.localCurrentPlayingFile.mediaStreamUrl
             }
             else {
                 return ''
             }
-            
         },
 
         player() {
@@ -59,6 +72,13 @@ export default {
     },
 
     methods: {
+        // ...mapActions(useVideoPlayerStore, [
+        //     'SET_VIDEO_MODE',
+        //     'SET_VIDEO_QUEUE',
+        //     'SET_CURRENT_VIDEO_FILE',
+        //     'SET_CURRENT_PLAYING_VIDEO_FILE_INDEX'
+        // ]),
+
         resetPlayer() {
             this.player.source = null
             console.log('Player reloaded');
