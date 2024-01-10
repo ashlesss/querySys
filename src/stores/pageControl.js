@@ -14,6 +14,9 @@ export const usePageControlStore = defineStore('pageControl', {
   },
 
   actions: {
+    SET_PAGE_CONTROL(flag) {
+      this.pageActive = flag
+    },
     SET_CURR_PAGE_STORE(page) {
       this.currPageStore = page
       console.log('currPageStore', this.currPageStore);

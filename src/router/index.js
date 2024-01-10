@@ -37,25 +37,25 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE)
   })
 
-  Router.beforeEach((to, from, next) => {
-    // console.log(`Navigating from ${from.fullPath} to ${to.fullPath}`);
-    const store = usePageControlStore()
-    if (to.path === '/works') {
-      store.pageActive = true
-      store.loggerEnable = true
-      store.SET_CURR_PAGE_STORE(to.query.page)
-      console.log('pageActived', store.pageActive);
-      console.log('router page', to.query.page);
-    }
-    else {
-      store.pageActive = false
-      if (store.loggerEnable) {
-        console.log('pageActived', store.pageActive);
-      }
-      store.loggerEnable = false
-    }
-    next()
-  })
+  // Router.beforeEach((to, from, next) => {
+  //   // console.log(`Navigating from ${from.fullPath} to ${to.fullPath}`);
+  //   const store = usePageControlStore()
+  //   if (to.path === '/works') {
+  //     store.pageActive = true
+  //     store.loggerEnable = true
+  //     store.SET_CURR_PAGE_STORE(to.query.page)
+  //     console.log('pageActived', store.pageActive);
+  //     console.log('router page', to.query.page);
+  //   }
+  //   else {
+  //     store.pageActive = false
+  //     if (store.loggerEnable) {
+  //       console.log('pageActived', store.pageActive);
+  //     }
+  //     store.loggerEnable = false
+  //   }
+  //   next()
+  // })
 
   return Router
 })

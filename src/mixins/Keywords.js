@@ -1,4 +1,33 @@
 export default {
+    computed: {
+        keyword: {
+          get () {
+            // 如果已经离开搜索页面，冻结搜索关键词
+            const isLeave = this.$route.name !== 'works'
+    
+            if (isLeave) {
+              // console.log('use saved keyword', this.$q.sessionStorage.getItem('lastKeywordBeforeLeave'))
+              return this.$q.sessionStorage.getItem('searchKeyword') ?? ''
+            } else {
+              console.log('use query keyword', this.$route.query.keyword ?? '')
+              return this.$route.query.keyword ?? ''
+            }
+          },
+          set (val) {
+            this.$router.push({
+              name: 'works',
+              query: {
+                keyword: val ? val.trim() : undefined
+              }
+            }).then()
+          }
+        },
+    },
+    watch: {
+        keyword(val) {
+          this.$q.sessionStorage.set('searchKeyword', val)
+        }
+    },
     methods: {
         parseKeywords(keywords) {
             const regex = /^(\$[^$]+:[^$]+\$)|\s(\$[^$]+:[^$]+\$)/g

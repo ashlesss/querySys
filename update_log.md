@@ -1,5 +1,9 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 1/10/2024
+
+1. Refactor page control logics. (not complete)
+
 ## 1/8/2024
 
 1. Add video player page for playing video. (not complete)

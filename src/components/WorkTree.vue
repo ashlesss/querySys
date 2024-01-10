@@ -33,7 +33,7 @@
                     <q-icon size="34px" v-else-if="item.type === 'image'" color="orange" name="photo" />
                     <q-icon size="34px" v-else-if="item.type === 'other'" color="info" name="description" />
                     <q-btn v-else-if="item.type === 'video'" round dense color="primary" :icon="playIcon(item.hash)" @click="onClickPlayButtonVideo(item.hash)" />
-                    <q-btn v-else round dense color="primary" :icon="playing" @click="onClickPlayButton(item.hash)" />
+                    <q-btn v-else round dense color="primary" :icon="playIcon(item.hash)" @click="onClickPlayButton(item.hash)" />
                     <!-- <q-btn v-else round dense color="primary" icon="play_arrow"/> -->
                 </q-item-section>
 
@@ -308,7 +308,10 @@ export default{
                     index: this.videoQueueLocal.findIndex(file => file.hash === item.hash),
                     resetPlaying: true
                 })
-                this.$router.push(`/watch/${item.hash.split('/')[0]}?hash=${item.hash.split('/')[1]}`)
+                this.$nextTick(() => {
+                    this.$router.push(`/watch/${this.$route.params.id}?hash=${item.hash.split('/')[1]}`)
+                })
+                
             }
             else if (this.currentPlayingFile.hash !== item.hash) {
                 this.SET_QUEUE({

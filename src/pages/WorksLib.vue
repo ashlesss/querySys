@@ -56,7 +56,7 @@
     <!-- Works -->
     <!-- <q-infinite-scroll @load="requestWorks" :offset="250"> -->
     <div class="row q-px-sm q-pt-sm q-col-gutter-x-md q-col-gutter-y-lg">
-        <!-- col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2 -->
+        <!-- col-xs-12 col-sm-`4` col-md-3 col-lg-2 col-xl-2 -->
         <div :id="work.rj_code" class="col-xs-12 col-sm-4 col-md-3 col-lg-2 col-xl-2" v-for="(work, index) in works.works" :key="index">
                 <WordCard :work="work" class="fit"/> 
         </div>
@@ -71,13 +71,12 @@
             <q-pagination
                 size="18px"
                 v-show="!isLoading"
-                v-model="currPage"
+                v-model="page"
                 :max="maxPage"
                 :max-pages="6"
                 direction-links
                 outline
                 gutter="sm"
-                @update:model-value="pageChange($event)"
             />
         </div>
 
@@ -94,17 +93,23 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue';
 import WordCard from '../components/WorkCard.vue';
 import NotifyMixin from '../mixins/Notification.js'
 import { mapState, mapActions } from 'pinia'
 import { usePageControlStore } from '../stores/pageControl'
 import Keywords from '../mixins/Keywords.js'
+import Page from '../mixins/Page'
+import { debounce } from 'quasar'
 
-export default defineComponent({
+export default {
     name: "WorksLib",
 
-    mixins: [NotifyMixin, Keywords],
+    mixins: [
+        NotifyMixin, 
+        Keywords, 
+        Page
+    ],
+    ...Page,
 
     components: {
         WordCard,
@@ -113,7 +118,7 @@ export default defineComponent({
     data() {
         return {
             works: [],
-            currPage: Number(this.$route.query.page) || 1,
+            currPage: 1,
             maxPage: 1,
             totalWorks: 0,
             pageTitle: '',
@@ -122,12 +127,12 @@ export default defineComponent({
             tempList: [],
             tempKeyword: '',
             isLoading: false,
-            keyword: this.$route.query.keyword || '',
-            sortOption: {
+            // keyword: '',
+            sortOption: this.$q.localStorage.getItem('sortOption') ? {
                 label: '按照发售日期新到老的顺序',
                 order: 'regist_date',
                 sort: 'desc'
-            },
+            } : JSON.parse(this.$q.localStorage.getItem('sortOption')),
             options: [
                 {
                 label: '按照发售日期新到老的顺序',
@@ -188,56 +193,80 @@ export default defineComponent({
             subtitle: false,
             isNoWork: false,
             gotoPage: '',
-            dense: true
+            dense: true,
+            cancelTokenSource: null,
         }
     },
 
     computed: {
-        url() {
-            const query = this.$route.query
-            if (query.keyword) {
-                return `/api/query/search/${encodeURIComponent(query.keyword)}?page=${this.currPage}`
-            }
-            else if (this.$q.sessionStorage.getItem('searchKeyword')) {
-                return `/api/query/search/${encodeURIComponent(this.$q.sessionStorage.getItem('searchKeyword'))}?page=${this.currPage}`
-            }
-            else {
-                return `/api/query/works?page=${this.currPage}`
-            }
-        },
+        // url() {
+        //     const query = this.$route.query
+        //     if (query.keyword) {
+        //         return `/api/query/search/${encodeURIComponent(query.keyword)}?page=${this.currPage}`
+        //     }
+        //     else if (this.$q.sessionStorage.getItem('searchKeyword')) {
+        //         return `/api/query/search/${encodeURIComponent(this.$q.sessionStorage.getItem('searchKeyword'))}?page=${this.currPage}`
+        //     }
+        //     else {
+        //         return `/api/query/works?page=${this.currPage}`
+        //     }
+        // },
 
         ...mapState(usePageControlStore, [
             'pageActive',
+            'currPageStore'
         ]),
     },
 
     watch: {
-        url() {
-            if (this.$route.path.match(/\bworks\b/)) {
-                this.isLoading = true
-                if ((this.$route.query.keyword ? this.$route.query.keyword : '') === this.keyword) {
-                    // console.log('keyword not change', this.$route.query.page);
-                    this.resetPageTitle()
-                }
-                else {
-                    console.log('keyword changed');
-                    // console.log('url page', this.$route.query.page);
-                    if (this.$route.query.page) {
-                        this.resetPageTitle()
-                        this.keyword = this.$route.query.keyword || ''
-                    }
-                    else {
-                        this.reset()
-                        this.keyword = this.$route.query.keyword || ''
-                    }
-                }
-            }
+        // url(url) {
+        //     console.log(url);
+        //     // if (this.$route.path.match(/\bworks\b/)) {
+        //     //     this.isLoading = true
+        //     //     if ((this.$route.query.keyword ? this.$route.query.keyword : '') === this.keyword) {
+        //     //         console.log('keyword not change', this.$route.query.page);
+        //     //         this.resetPageTitle()
+        //     //     }
+        //     //     else {
+        //     //         console.log('keyword changed');
+        //     //         // console.log('url page', this.$route.query.page);
+        //     //         if (this.$route.query.page) {
+        //     //             console.log('keyword changed', this.$route.query.page);
+        //     //             this.resetPageTitle()
+        //     //             this.keyword = this.$route.query.keyword || ''
+        //     //         }
+        //     //         else {
+        //     //             console.log('keyword changed1', this.$route.query.page);
+        //     //             this.reset()
+        //     //             this.keyword = this.$route.query.keyword || ''
+        //     //         }
+        //     //     }
+        //     // }
 
+        //     // if (this.$route.query.keyword) {
+        //     //     this.resetPageTitle()
+        //     // }
+        //     // else {
+        //     //     this.reset()
+        //     // }
+
+        // },
+
+        page() {
+            this.requestWorks()
+        },
+
+        keyword() {
+            this.resetPageTitle()
         },
 
         sortOption (newSortOptionSetting) {
-            this.$q.localStorage.set('sortOption', JSON.stringify(newSortOptionSetting))
-            this.sortOptionReset();
+            console.log(JSON.stringify(this.sortOption) !== this.$q.localStorage.getItem('sortOption'));
+            if (JSON.stringify(this.sortOption) !== this.$q.localStorage.getItem('sortOption')) {
+                this.$q.localStorage.set('sortOption', JSON.stringify(newSortOptionSetting))
+                this.sortOptionReset();
+            }
+            
         },
 
         $route(data) {
@@ -252,14 +281,14 @@ export default defineComponent({
                 document.title = 'Querysys'
             }
 
-            if (data.path.match(/\bworks\b/) && this.pageActive) {
-                if (data.query.page) {
-                    this.currPage = Number(data.query.page)
-                }
-                else  {
-                    this.currPage = 1
-                }
-            }
+            // if (data.path.match(/\bworks\b/) && this.pageActive) {
+            //     if (data.query.page) {
+            //         this.currPage = Number(data.query.page)
+            //     }
+            //     else  {
+            //         this.currPage = 1
+            //     }
+            // }
         },
 
         subtitle() {
@@ -268,18 +297,14 @@ export default defineComponent({
         }
     },
 
+    created() {
+        this.resetPageTitle()
+    },
+
     mounted() {
 
         if (this.$q.localStorage.getItem('sortOption')) {
-            try {
-                this.sortOption = JSON.parse(this.$q.localStorage.getItem('sortOption'))
-            }
-            catch {
-                this.$q.localStorage.remove('sortOption')
-            }
-        }
-        else {
-            this.resetPageTitle()
+            this.sortOption = JSON.parse(this.$q.localStorage.getItem('sortOption'))
         }
         
         if (this.$route.query.keyword) {
@@ -294,17 +319,22 @@ export default defineComponent({
     },
 
     methods: {
-        pageChange(pageNumber) {
-            this.isLoading = true
-            // this.currPage = pageNumber
-            // console.log('pageChange run', pageNumber);
-            if (this.$route.query.keyword) {
-                this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${pageNumber}`)
-            }
-            else {
-                this.$router.push(`/works?page=${pageNumber}`)
-            }
-        },
+        ...mapActions(usePageControlStore, [
+            'SET_PAGE_CONTROL',
+            'SET_CURR_PAGE_STORE'
+        ]),
+
+        // pageChange(pageNumber) {
+        //     this.isLoading = true
+        //     // this.currPage = pageNumber
+        //     // console.log('pageChange run', pageNumber);
+        //     if (this.$route.query.keyword) {
+        //         this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${pageNumber}`)
+        //     }
+        //     else {
+        //         this.$router.push(`/works?page=${pageNumber}`)
+        //     }
+        // },
 
         requestWorks() {
             this.works= []
@@ -312,21 +342,29 @@ export default defineComponent({
             const params = {
                 order: this.sortOption.order,
                 sort: this.sortOption.sort,
-                subtitle: this.subtitle ? 1 : 0
+                subtitle: this.subtitle ? 1 : 0,
+                page: this.page
             }
+
+            if (this.cancelTokenSource) {
+                this.cancelTokenSource.cancel('Operation canceled due to new request.');
+            }
+
+            this.cancelTokenSource = this.$axios.CancelToken.source();
             // console.log(params);
-            this.$axios.get(this.url, { params })
+            this.$axios.get(this.keyword ? `/api/query/search/${encodeURIComponent(this.keyword)}` : `/api/query/works`, { params, cancelToken: this.cancelTokenSource.token })
             .then(val => {
                 const pagination = val.data.pagination
                 if (pagination.max_page !== 0) {
-                    if (this.currPage > pagination.max_page) {
-                        this.maxPage = this.currPage
+                    if (this.page > pagination.max_page) {
+                        this.maxPage = this.page
                         this.totalWorks = pagination.total_works
 
                         const result = val.data
                         this.works = result
                         this.isNoWork = true
                         this.isLoading = false
+                        this.cancelTokenSource = null
                     }
                     else {
                         // this.currPage = pagination.current_page
@@ -356,11 +394,15 @@ export default defineComponent({
                 
             })
             .catch(err => {
-                this.currPage = 1
+                
+                // this.currPage = 1
                 this.maxPage = 1
                 this.totalWorks = 0
                 this.isLoading = false
-                if (err.response) {
+                if (this.$axios.isCancel(err)) {
+                    console.log('Request canceled:', err.message);
+                }
+                else if (err.response) {
                     this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`)
                 }
                 else {
@@ -489,5 +531,21 @@ export default defineComponent({
             }
         },
     },
-})
+
+    // beforeRouteEnter(to, from, next) {
+    //     next(vm => {
+    //         vm.SET_PAGE_CONTROL(true)
+    //         console.log('Page control active. Current page: ', to.query.page);
+    //         vm.currPage = to.query.page ? Number(to.query.page) : 1
+    //         vm.keyword = to.query.keyword ? to.query.keyword : ''
+    //     })
+    // },
+
+    // beforeRouteLeave(to, from, next) {
+    //     this.SET_PAGE_CONTROL(false)
+    //     console.log('Page control inactive');
+    //     this.SET_CURR_PAGE_STORE(this.currPage)
+    //     next()
+    // }
+}
 </script>

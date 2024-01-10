@@ -141,7 +141,7 @@
       <!-- <router-view /> -->
       <!-- :key="this.$route.path" -->
       <router-view v-slot="{ Component } ">
-        <keep-alive exclude="WorkDetail">
+        <keep-alive>
           <component :is="Component"/>
         </keep-alive>
         <q-page-scroller position="bottom-right" :scroll-offset="150" :offset="[18, 18]">
@@ -176,12 +176,13 @@ import { useUserAuthStore } from '../stores/userAuth'
 import NotifyMixin from '../mixins/Notification.js'
 import { usePageControlStore } from '../stores/pageControl'
 import LyricsBar from '../components/LyricsBar.vue'
+import Search from '../mixins/Keywords'
 
 
 export default defineComponent({
   name: 'MainLayout',
 
-  mixins: [NotifyMixin],
+  mixins: [NotifyMixin, Search],
 
   components: {
     DownloadCard,
@@ -194,7 +195,7 @@ export default defineComponent({
   data() {
     return {
       // keyword: this.$route.query ? this.$route.query.keyword : '',
-      keyword: this.$route.query.keyword || '',
+      // keyword: this.$route.query.keyword || '',
       drawerOpen: ref(false),
       miniState: ref(true),
       isDarkActive: false,
@@ -221,96 +222,105 @@ export default defineComponent({
   },
 
   watch: {
-    keyword() {
-      console.log('keyword', this.keyword);
-      // sessionStorage.setItem('searchKeyword', this.keyword)
-      // const keyword = sessionStorage.getItem('searchKeyword')
-      this.$q.sessionStorage.set('searchKeyword', this.keyword.trim())
-      const keyword = this.$q.sessionStorage.getItem('searchKeyword').trim()
+    // keyword() {
+    //   console.log('keyword', this.keyword);
+    //   // sessionStorage.setItem('searchKeyword', this.keyword)
+    //   // const keyword = sessionStorage.getItem('searchKeyword')
+    //   this.$q.sessionStorage.set('searchKeyword', this.keyword.trim())
+    //   const keyword = this.$q.sessionStorage.getItem('searchKeyword').trim()
 
-      if (keyword) {
-        if (this.$route.path.match(/\bwork\b/) && this.sFocus) {
-          if (this.$route.query.page) {
-            console.log('main', this.$route.query.page);
-            this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
-          }
-          else {
-            this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
-          }
-        }
-        else if (this.sFocus) {
-          // if (this.$route.query.page) {
-          //   console.log('main', this.$route.query.keyword);
-          //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
-          // }
-          // else {
-          //   // console.log('main', this.$route.query.id);
-          //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
-          // }
-          this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
-        }
-        // this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}&page=1`)
-      }
-      else {
-        if (this.$route.query.path) {
-          // console.log('query path exists');
-          this.$router.push(`${this.$route.fullPath}`)
-        }
-        else {
-          // console.log('main page: ' + this.$route.fullPath);
-          if (this.$route.query.page) {
-            // console.log('main pageNumber', this.$route.query.page);
-            this.$router.push(`${this.$route.path}`)
-            // this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
-            this.keyword = ''
-            // sessionStorage.setItem('searchKeyword', '')
-            this.$q.sessionStorage.set('searchKeyword', '')
-          }
-          else {
-            // console.log('path1', this.$route.path);
-            // console.log('path2', this.$route.path);
-            // console.log('run');
-            // this.keyword = ''
-            // sessionStorage.setItem('searchKeyword', '')
-            this.$q.sessionStorage.set('searchKeyword', '')
-            this.$router.push(`/works`)
-          }
+    //   if (keyword) {
+    //     const route = {
+    //       name: 'works',
+    //       query: {
+    //         keyword: keyword ? keyword.trim() : undefined,
+    //         page: this.$route.query.page ? this.$route.query.page : undefined
+    //       }
+    //     }
+
+    //     this.$router.push(route)
+    //     // if (this.$route.path.match(/\bwork\b/) && this.sFocus) {
+    //     //   if (this.$route.query.page) {
+    //     //     console.log('main', this.$route.query.page);
+    //     //     this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
+    //     //   }
+    //     //   else {
+    //     //     this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
+    //     //   }
+    //     // }
+    //     // else if (this.sFocus) {
+    //     //   // if (this.$route.query.page) {
+    //     //   //   console.log('main', this.$route.query.keyword);
+    //     //   //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
+    //     //   // }
+    //     //   // else {
+    //     //   //   // console.log('main', this.$route.query.id);
+    //     //   //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
+    //     //   // }
+    //     //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
+    //     // }
+    //     // this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}&page=1`)
+    //   }
+    //   else {
+    //     if (this.$route.query.path) {
+    //       // console.log('query path exists');
+    //       this.$router.push(`${this.$route.fullPath}`)
+    //     }
+    //     else {
+    //       // console.log('main page: ' + this.$route.fullPath);
+    //       if (this.$route.query.page) {
+    //         // console.log('main pageNumber', this.$route.query.page);
+    //         this.$router.push(`${this.$route.path}`)
+    //         // this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
+    //         this.keyword = ''
+    //         // sessionStorage.setItem('searchKeyword', '')
+    //         this.$q.sessionStorage.set('searchKeyword', '')
+    //       }
+    //       else {
+    //         // console.log('path1', this.$route.path);
+    //         // console.log('path2', this.$route.path);
+    //         // console.log('run');
+    //         // this.keyword = ''
+    //         // sessionStorage.setItem('searchKeyword', '')
+    //         this.$q.sessionStorage.set('searchKeyword', '')
+    //         this.$router.push(`/works`)
+    //       }
           
-        }
-      }
-    },
+    //     }
+    //   }
+    // },
 
-    $route(data) {
-      if (data.query.keyword) {
-        this.keyword = data.query.keyword
-        // sessionStorage.setItem('searchKeyword', data.query.keyword)
-        this.$q.sessionStorage.set('searchKeyword', data.query.keyword)
-      }
-      else {
-        if (!data.path.match(/\bwork\b/)) {
-          this.keyword = ''
-          // sessionStorage.setItem('searchKeyword', '')
-          this.$q.sessionStorage.set('searchKeyword', '')
-        }
-      }
-    }
+    // $route(data) {
+    //   if (data.query.keyword) {
+    //     this.keyword = data.query.keyword
+    //     // sessionStorage.setItem('searchKeyword', data.query.keyword)
+    //     this.$q.sessionStorage.set('searchKeyword', data.query.keyword)
+    //   }
+    //   else {
+    //     if (!data.path.match(/\bwork\b/)) {
+    //       this.keyword = ''
+    //       // sessionStorage.setItem('searchKeyword', '')
+    //       this.$q.sessionStorage.set('searchKeyword', '')
+    //     }
+    //   }
+    // }
 
   },
 
   mounted() {
-    if (this.$route.query.keyword) {
-      // sessionStorage.setItem('searchKeyword', this.$route.query.keyword)
-      this.$q.sessionStorage.set('searchKeyword', this.$route.query.keyword)
-      this.keyword = this.$route.query.keyword
-    }
-    else {
-      // const keyword = sessionStorage.getItem('searchKeyword')
-      // const keyword = this.$q.sessionStorage.getItem('searchKeyword')
-      // keyword ? this.keyword = keyword : this.keyword = ''
-      this.$q.sessionStorage.set('searchKeyword', '')
-      this.keyword = ''
+    // if (this.$route.query.keyword) {
+    //   // sessionStorage.setItem('searchKeyword', this.$route.query.keyword)
+    //   this.$q.sessionStorage.set('searchKeyword', this.$route.query.keyword)
+    //   this.keyword = this.$route.query.keyword
+    // }
+    // else {
+    //   // const keyword = sessionStorage.getItem('searchKeyword')
+    //   // const keyword = this.$q.sessionStorage.getItem('searchKeyword')
+    //   // keyword ? this.keyword = keyword : this.keyword = ''
+    //   this.$q.sessionStorage.set('searchKeyword', '')
+    //   this.keyword = ''
       
-    }
+    // }
   },
 
   created() {
@@ -385,30 +395,11 @@ export default defineComponent({
           if (this.$q.sessionStorage.getItem('searchKeyword')) {
             this.$router.push(`/works?keyword=${encodeURIComponent(this.$q.sessionStorage
               .getItem('searchKeyword'))}${this.currPageStore ? 
-              `&page=${this.currPageStore}` : ''}${this.$route.params.id 
-              ? `#${this.$route.params.id}` : ''}`)
+              `&page=${this.currPageStore}` : ''}`)
           }
           else {
             this.$router.push(`/works${this.currPageStore 
-              ? `?page=${this.currPageStore}` : ''}${this.$route.params.id 
-              ? `#${this.$route.params.id}` : ''}`)
-          }
-        }
-        else if (this.$route.params.id && !this.firstRandom) {
-          if (this.$q.sessionStorage.getItem('searchKeyword')) {
-            this.$router.push(`/works?keyword=${encodeURIComponent(this.$q.sessionStorage
-              .getItem('searchKeyword'))}${this.currPageStore ? 
-              `&page=${this.currPageStore}` : ''}#${this.firstRandomRJ ? 
-              `${this.firstRandomRJ}` : this.$route.params.id}`)
-            this.SET_FIRST_RAND(true)
-            this.SET_FIRST_RAND_RJ('')
-          }
-          else {
-            this.$router.push(`/works${this.currPageStore ? 
-              `?page=${this.currPageStore}` : ''}#${this.firstRandomRJ ? 
-              `${this.firstRandomRJ}` : this.$route.params.id}`)
-            this.SET_FIRST_RAND(true)
-            this.SET_FIRST_RAND_RJ('')
+              ? `?page=${this.currPageStore}` : ''}`)
           }
         }
         else {
@@ -424,20 +415,6 @@ export default defineComponent({
     showDownloadPage() {
       this.SHOW_DOWNLOAD_CARD()
       // console.log(this.seamlessStore);
-    },
-
-    changeKeywordPage() {
-      if (this.keyword) {
-        if (this.$route.query.page) {
-          this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}&page=${this.$route.query.page}`)
-        }
-        else {
-          this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}`)
-        }
-      }
-      else {
-        this.$router.push(`/works`)
-      }
     },
 
     searchFocus() {
