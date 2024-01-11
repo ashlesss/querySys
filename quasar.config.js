@@ -33,6 +33,7 @@ module.exports = configure(function (/* ctx */) {
       'axios',
       'vue-plyr',
       'socket.io',
+      // 'sentry'
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
@@ -69,6 +70,7 @@ module.exports = configure(function (/* ctx */) {
       // vueDevtools: true,
       // vueOptionsAPI: false,
       sourcemap: true,
+      env: require('dotenv').config(/* ... */).parsed,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
