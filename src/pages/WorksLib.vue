@@ -70,7 +70,7 @@
         <div>
             <q-pagination
                 size="18px"
-                v-show="!isLoading"
+                v-if="!isLoading"
                 v-model="page"
                 :max="maxPage"
                 :max-pages="6"
@@ -88,7 +88,6 @@
         <div class="q-ml-md" style="max-width: 50px;">
             <q-input v-show="!isLoading" class="row" outlined v-model="gotoPage" :dense="dense" @keydown.enter.prevent="gotoThatPage"/>
         </div>
-        <!-- @update:model-value="pageChange($event)" -->
     </div>
 </template>
 
@@ -121,7 +120,7 @@ export default {
             currPage: 1,
             maxPage: 1,
             totalWorks: 0,
-            pageTitle: '',
+            // pageTitle: '',
             searchItems: [],
             plainKeywords: '',
             tempList: [],
@@ -199,65 +198,32 @@ export default {
     },
 
     computed: {
-        // url() {
-        //     const query = this.$route.query
-        //     if (query.keyword) {
-        //         return `/api/query/search/${encodeURIComponent(query.keyword)}?page=${this.currPage}`
-        //     }
-        //     else if (this.$q.sessionStorage.getItem('searchKeyword')) {
-        //         return `/api/query/search/${encodeURIComponent(this.$q.sessionStorage.getItem('searchKeyword'))}?page=${this.currPage}`
-        //     }
-        //     else {
-        //         return `/api/query/works?page=${this.currPage}`
-        //     }
-        // },
-
         ...mapState(usePageControlStore, [
             'pageActive',
             'currPageStore'
         ]),
+
+        pageTitle() {
+            if (this.$route.query.keyword) {
+                this.getSearchItem()
+                return `Search by `
+            }
+            else {
+                return 'All works'
+            }
+        },
     },
 
     watch: {
-        // url(url) {
-        //     console.log(url);
-        //     // if (this.$route.path.match(/\bworks\b/)) {
-        //     //     this.isLoading = true
-        //     //     if ((this.$route.query.keyword ? this.$route.query.keyword : '') === this.keyword) {
-        //     //         console.log('keyword not change', this.$route.query.page);
-        //     //         this.resetPageTitle()
-        //     //     }
-        //     //     else {
-        //     //         console.log('keyword changed');
-        //     //         // console.log('url page', this.$route.query.page);
-        //     //         if (this.$route.query.page) {
-        //     //             console.log('keyword changed', this.$route.query.page);
-        //     //             this.resetPageTitle()
-        //     //             this.keyword = this.$route.query.keyword || ''
-        //     //         }
-        //     //         else {
-        //     //             console.log('keyword changed1', this.$route.query.page);
-        //     //             this.reset()
-        //     //             this.keyword = this.$route.query.keyword || ''
-        //     //         }
-        //     //     }
-        //     // }
-
-        //     // if (this.$route.query.keyword) {
-        //     //     this.resetPageTitle()
-        //     // }
-        //     // else {
-        //     //     this.reset()
-        //     // }
-
-        // },
-
         page() {
             this.requestWorks()
         },
 
         keyword() {
-            this.resetPageTitle()
+            this.requestWorks()
+            if (!this.$route.query.keyword) {
+                this.searchItems = []
+            }
         },
 
         sortOption (newSortOptionSetting) {
@@ -280,28 +246,20 @@ export default {
             else {
                 document.title = 'Querysys'
             }
-
-            // if (data.path.match(/\bworks\b/) && this.pageActive) {
-            //     if (data.query.page) {
-            //         this.currPage = Number(data.query.page)
-            //     }
-            //     else  {
-            //         this.currPage = 1
-            //     }
-            // }
         },
 
         subtitle() {
-            this.isLoading = true
-            this.resetPageTitle()
+            this.requestWorks()
         }
     },
 
     created() {
-        this.resetPageTitle()
+        this.requestWorks = debounce(this.requestWorks, 100)
     },
 
     mounted() {
+
+        this.requestWorks()
 
         if (this.$q.localStorage.getItem('sortOption')) {
             this.sortOption = JSON.parse(this.$q.localStorage.getItem('sortOption'))
@@ -324,19 +282,8 @@ export default {
             'SET_CURR_PAGE_STORE'
         ]),
 
-        // pageChange(pageNumber) {
-        //     this.isLoading = true
-        //     // this.currPage = pageNumber
-        //     // console.log('pageChange run', pageNumber);
-        //     if (this.$route.query.keyword) {
-        //         this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${pageNumber}`)
-        //     }
-        //     else {
-        //         this.$router.push(`/works?page=${pageNumber}`)
-        //     }
-        // },
-
         requestWorks() {
+            this.isLoading = true
             this.works= []
             console.log('requestWork run');
             const params = {
@@ -411,21 +358,21 @@ export default {
             })
         },
 
-        resetPageTitle() {
-            if (this.$route.query.keyword) {
-                this.works= []
-                this.getSearchItem()
-                // console.log('resetPageTitleUrl: ' + this.url);
-                this.pageTitle = `Search by `
-                this.requestWorks()
-            }
-            else {
-                this.pageTitle = 'All works'
-                this.requestWorks()
-                this.searchItems = []
-            }
-            // console.log('resetPageTitle ' + this.currPage);
-        },
+        // resetPageTitle() {
+        //     if (this.$route.query.keyword) {
+        //         this.works= []
+        //         this.getSearchItem()
+        //         // console.log('resetPageTitleUrl: ' + this.url);
+        //         this.pageTitle = `Search by `
+        //         this.requestWorks()
+        //     }
+        //     else {
+        //         this.pageTitle = 'All works'
+        //         this.requestWorks()
+        //         this.searchItems = []
+        //     }
+        //     // console.log('resetPageTitle ' + this.currPage);
+        // },
 
         pickTagColor(tagTerm) {
             switch (tagTerm.term) {
@@ -463,24 +410,10 @@ export default {
             }
         },
 
-        reset() {
-            // console.log(this.totalWorks);
-            console.log('reset run');
-            this.isLoading = true
-            this.totalWorks = 0
-            this.currPage = 1
-            this.resetPageTitle()
-            // this.requestWorks()
-            // console.log('reseted: ' + this.currPage);
-        },
-
         sortOptionReset() {
             console.log('sortOptionReset run');
-            this.isLoading = true
             this.totalWorks = 0
-            this.resetPageTitle()
-            // this.currPage = 1
-            // this.requestWorks()
+            this.requestWorks()
         },
 
         removeSearchTag(name, index) {

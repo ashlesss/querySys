@@ -29,6 +29,7 @@
       <div class="row items-center">
         <div class="col-auto q-ml-sm">
           <q-rating
+            v-if="rating"
             v-model="rating"
             size="sm"
             icon="star_border"
@@ -38,7 +39,7 @@
           <!-- :color="userMarked ? 'blue' : 'amber'" -->
         </div>
 
-        <div class="col-auto">
+        <div v-if="rating" class="col-auto">
           <span class="text-weight-medium text-body1 text-red">{{ work.rate_average_2dp }}</span>
           <span class="text-grey"> ({{ work.rate_count }})</span>
         </div>
