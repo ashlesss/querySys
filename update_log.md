@@ -1,5 +1,10 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 1/11/2024
+
+1. Serve plyr.svg from `/public`.
+2. Optimize to show `totalWork` number when page contains changes on `WorkLib` page.
+
 ## 1/10/2024
 
 1. Fix page control.

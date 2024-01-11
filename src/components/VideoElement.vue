@@ -1,6 +1,8 @@
 <template>
     <div class="q-pl-lg q-pr-lg q-pb-lg">
-        <vue-plyr ref="plyr" 
+        <vue-plyr 
+            ref="plyr" 
+            :options="options"
         >
             <video crossorigin="anonymous">
                 <source
@@ -24,7 +26,10 @@ export default {
 
     data() {
         return {
-            localCurrentPlayingFile: this.currentVideoFile
+            localCurrentPlayingFile: this.currentVideoFile,
+            options: {
+                iconUrl: '/plyr.svg'
+            }
         }
     },
 

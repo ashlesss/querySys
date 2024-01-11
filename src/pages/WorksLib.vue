@@ -19,7 +19,7 @@
                 {{ keyword ? parseKeywords(keyword).plainKeywords : '' }}
             </span>
 
-            <span v-show="totalWorks">
+            <span v-if="totalWorks">
                 ({{ totalWorks }})
             </span>
         </div>
@@ -285,6 +285,7 @@ export default {
         requestWorks() {
             this.isLoading = true
             this.works= []
+            this.totalWorks = 0
             console.log('requestWork run');
             const params = {
                 order: this.sortOption.order,
@@ -299,7 +300,10 @@ export default {
 
             this.cancelTokenSource = this.$axios.CancelToken.source();
             // console.log(params);
-            this.$axios.get(this.keyword ? `/api/query/search/${encodeURIComponent(this.keyword)}` : `/api/query/works`, { params, cancelToken: this.cancelTokenSource.token })
+            this.$axios.get(
+                this.keyword ? `/api/query/search/${encodeURIComponent(this.keyword)}` 
+                : `/api/query/works`, { params, cancelToken: this.cancelTokenSource.token }
+            )
             .then(val => {
                 const pagination = val.data.pagination
                 if (pagination.max_page !== 0) {
@@ -419,6 +423,7 @@ export default {
         removeSearchTag(name, index) {
             // console.log(name, index);
             // this.searchItems[index].render = false
+            this.totalWorks = 0
             this.searchItems.splice(index, 1)
             // console.log(`searchItems: ${this.searchItems.length}`);
             if (this.searchItems.length) {
@@ -450,14 +455,7 @@ export default {
 
         gotoThatPage() {
             if (!isNaN(Number(this.gotoPage))) {
-                if (this.$route.query.keyword) {
-                    this.$router.push(`/works?keyword=${encodeURIComponent(this.$route.query.keyword)}&page=${this.gotoPage}`)
-                    this.gotoPage = ''
-                }
-                else {
-                    this.$router.push(`/works?page=${this.gotoPage}`)
-                    this.gotoPage = ''
-                }
+                this.page = this.gotoPage
             }
             else {
                 this.gotoPage = ''

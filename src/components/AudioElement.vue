@@ -37,7 +37,8 @@ export default {
             lrcObj: null,
             lrcAvailable: false,
             options: {
-                controls: ['progress']
+                controls: ['progress'],
+                iconUrl: '/plyr.svg'
             }
         }
     },
