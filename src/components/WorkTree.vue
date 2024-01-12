@@ -52,11 +52,11 @@
                     transition-hide="jump-up"
                 >
                     <q-list separator>
-                        <q-item clickable @click="addToQueue(item)" v-if="item.type === 'audio'">
+                        <q-item clickable @click="addToQueue(item)" v-if="item.type === 'audio' && videoQueue.length === 0">
                             <q-item-section>Add to Play List</q-item-section>
                         </q-item>
 
-                        <q-item clickable @click="playNext(item)" v-if="item.type === 'audio'">
+                        <q-item clickable @click="playNext(item)" v-if="item.type === 'audio' && videoQueue.length === 0">
                             <q-item-section>Play Next</q-item-section>
                         </q-item>
 
@@ -265,14 +265,16 @@ export default{
             'PLAY_NEXT',
             'ADD_TO_QUEUE',
             'PLAY',
-            'SET_SUB_FILES'
+            'SET_SUB_FILES',
+            'RESET_AUDIO_STORE'
         ]),
 
         ...mapActions(useVideoPlayerStore, [
             'SET_VIDEO_MODE',
             'SET_VIDEO_QUEUE',
             'SET_CURRENT_VIDEO_FILE',
-            'SET_CURRENT_PLAYING_VIDEO_FILE_INDEX'
+            'SET_CURRENT_PLAYING_VIDEO_FILE_INDEX',
+            'RESET_VIDEO_STORE'
         ]),
 
         getUserPlatform() {
@@ -303,22 +305,59 @@ export default{
                 this.download(item);
             }
             else if (item.type === 'video') {
-                this.SET_VIDEO_QUEUE({
-                    queue: this.videoQueueLocal.concat(),
-                    index: this.videoQueueLocal.findIndex(file => file.hash === item.hash),
-                    resetPlaying: true
-                })
-                this.$nextTick(() => {
-                    this.$router.push(`/watch/${this.$route.params.id}?hash=${item.hash.split('/')[1]}`)
-                })
+                if (this.queue.length) {
+                    this.$q.dialog({
+                        title: 'Confirm',
+                        message: 'You have audio queues, continue will remove all the audio queues, proceed away?',
+                        cancel: true,
+                        persistent: true
+                    }).onOk(() => {
+                        // console.log('>>>> OK')
+                        this.RESET_AUDIO_STORE()
+                        this.SET_VIDEO_QUEUE({
+                            queue: this.videoQueueLocal.concat(),
+                            index: this.videoQueueLocal.findIndex(file => file.hash === item.hash),
+                            resetPlaying: true
+                        })
+                    }).onCancel(() => {
+                        console.log('User has cancelled adding video queue while there are aduio queues exist.')
+                    })
+                }
+                else {
+                    this.SET_VIDEO_QUEUE({
+                        queue: this.videoQueueLocal.concat(),
+                        index: this.videoQueueLocal.findIndex(file => file.hash === item.hash),
+                        resetPlaying: true
+                    })
+                }
                 
             }
             else if (this.currentPlayingFile.hash !== item.hash) {
-                this.SET_QUEUE({
-                    queue: this.queueLocal.concat(),
-                    index: this.queueLocal.findIndex(file => file.hash === item.hash),
-                    resetPlaying: true,
-                })
+                if (this.videoQueue.length) {
+                    this.$q.dialog({
+                        title: 'Confirm',
+                        message: 'You have video queues, continue will remove all the video queues, proceed away?',
+                        cancel: true,
+                        persistent: true
+                    }).onOk(() => {
+                        // console.log('>>>> OK')
+                        this.RESET_VIDEO_STORE()
+                        this.SET_QUEUE({
+                            queue: this.queueLocal.concat(),
+                            index: this.queueLocal.findIndex(file => file.hash === item.hash),
+                            resetPlaying: true,
+                        })
+                    }).onCancel(() => {
+                        console.log('User has cancelled adding aduio queue while there are video queues exist.')
+                    })
+                }
+                else {
+                    this.SET_QUEUE({
+                        queue: this.queueLocal.concat(),
+                        index: this.queueLocal.findIndex(file => file.hash === item.hash),
+                        resetPlaying: true,
+                    })
+                }
             }
         },
 

@@ -21,6 +21,7 @@
 
         </q-toolbar>
         <AudioPlayer />
+        <VideoElement />
       </q-header>
 
     <q-drawer
@@ -144,7 +145,7 @@
         <keep-alive>
           <component :is="Component"/>
         </keep-alive>
-        <q-page-scroller position="bottom-right" :scroll-offset="150" :offset="[18, 18]">
+        <q-page-scroller position="bottom-right" :scroll-offset="150" :offset="toTopPosition">
           <q-btn fab icon="keyboard_arrow_up" color="accent" />
         </q-page-scroller>
         
@@ -169,6 +170,7 @@ import { defineComponent, ref, defineAsyncComponent } from 'vue';
 import { mapState, mapActions } from 'pinia'
 import { useDownloadCardStore } from '../stores/downloadCard'
 import { useAudioPlayerStore } from '../stores/audioPlayer'
+import { useVideoPlayerStore } from '../stores/videoPlayer'
 import DownloadCard from '../components/DownloadCard.vue'
 import AudioPlayer from '../components/AudioPlayer.vue'
 import PlayerBar from '../components/PlayerBar.vue'
@@ -189,7 +191,8 @@ export default defineComponent({
     AudioPlayer,
     PlayerBar,
     LyricsBar,
-    PiPSubtitle: defineAsyncComponent(() => import('../components/PiPSubtitle.vue'))
+    PiPSubtitle: defineAsyncComponent(() => import('../components/PiPSubtitle.vue')),
+    VideoElement: defineAsyncComponent(() => import('../components/VideoElement.vue'))
   },
 
   data() {
@@ -222,105 +225,11 @@ export default defineComponent({
   },
 
   watch: {
-    // keyword() {
-    //   console.log('keyword', this.keyword);
-    //   // sessionStorage.setItem('searchKeyword', this.keyword)
-    //   // const keyword = sessionStorage.getItem('searchKeyword')
-    //   this.$q.sessionStorage.set('searchKeyword', this.keyword.trim())
-    //   const keyword = this.$q.sessionStorage.getItem('searchKeyword').trim()
-
-    //   if (keyword) {
-    //     const route = {
-    //       name: 'works',
-    //       query: {
-    //         keyword: keyword ? keyword.trim() : undefined,
-    //         page: this.$route.query.page ? this.$route.query.page : undefined
-    //       }
-    //     }
-
-    //     this.$router.push(route)
-    //     // if (this.$route.path.match(/\bwork\b/) && this.sFocus) {
-    //     //   if (this.$route.query.page) {
-    //     //     console.log('main', this.$route.query.page);
-    //     //     this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
-    //     //   }
-    //     //   else {
-    //     //     this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
-    //     //   }
-    //     // }
-    //     // else if (this.sFocus) {
-    //     //   // if (this.$route.query.page) {
-    //     //   //   console.log('main', this.$route.query.keyword);
-    //     //   //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}&page=${this.$route.query.page}`)
-    //     //   // }
-    //     //   // else {
-    //     //   //   // console.log('main', this.$route.query.id);
-    //     //   //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
-    //     //   // }
-    //     //   this.$router.push(`/works?keyword=${encodeURIComponent(keyword)}`)
-    //     // }
-    //     // this.$router.push(`/works?keyword=${encodeURIComponent(this.keyword)}&page=1`)
-    //   }
-    //   else {
-    //     if (this.$route.query.path) {
-    //       // console.log('query path exists');
-    //       this.$router.push(`${this.$route.fullPath}`)
-    //     }
-    //     else {
-    //       // console.log('main page: ' + this.$route.fullPath);
-    //       if (this.$route.query.page) {
-    //         // console.log('main pageNumber', this.$route.query.page);
-    //         this.$router.push(`${this.$route.path}`)
-    //         // this.$router.push(`${this.$route.path}?page=${this.$route.query.page}`)
-    //         this.keyword = ''
-    //         // sessionStorage.setItem('searchKeyword', '')
-    //         this.$q.sessionStorage.set('searchKeyword', '')
-    //       }
-    //       else {
-    //         // console.log('path1', this.$route.path);
-    //         // console.log('path2', this.$route.path);
-    //         // console.log('run');
-    //         // this.keyword = ''
-    //         // sessionStorage.setItem('searchKeyword', '')
-    //         this.$q.sessionStorage.set('searchKeyword', '')
-    //         this.$router.push(`/works`)
-    //       }
-          
-    //     }
-    //   }
-    // },
-
-    // $route(data) {
-    //   if (data.query.keyword) {
-    //     this.keyword = data.query.keyword
-    //     // sessionStorage.setItem('searchKeyword', data.query.keyword)
-    //     this.$q.sessionStorage.set('searchKeyword', data.query.keyword)
-    //   }
-    //   else {
-    //     if (!data.path.match(/\bwork\b/)) {
-    //       this.keyword = ''
-    //       // sessionStorage.setItem('searchKeyword', '')
-    //       this.$q.sessionStorage.set('searchKeyword', '')
-    //     }
-    //   }
-    // }
 
   },
 
   mounted() {
-    // if (this.$route.query.keyword) {
-    //   // sessionStorage.setItem('searchKeyword', this.$route.query.keyword)
-    //   this.$q.sessionStorage.set('searchKeyword', this.$route.query.keyword)
-    //   this.keyword = this.$route.query.keyword
-    // }
-    // else {
-    //   // const keyword = sessionStorage.getItem('searchKeyword')
-    //   // const keyword = this.$q.sessionStorage.getItem('searchKeyword')
-    //   // keyword ? this.keyword = keyword : this.keyword = ''
-    //   this.$q.sessionStorage.set('searchKeyword', '')
-    //   this.keyword = ''
-      
-    // }
+
   },
 
   created() {
@@ -365,7 +274,20 @@ export default defineComponent({
       'currPageStore',
       'firstRandom',
       'firstRandomRJ'
-    ])
+    ]),
+
+    ...mapState(useVideoPlayerStore, [
+      'videoHide'
+    ]),
+
+    toTopPosition() {
+      if (this.videoHide) {
+        return [18, 40]
+      }
+      else {
+        return [18, 18]
+      }
+    }
   },
 
   methods: {

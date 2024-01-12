@@ -1,5 +1,9 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 1/12/2024
+
+1. Remove dedicated watch page using video card instead.
+
 ## 1/11/2024
 
 1. Serve `plyr.svg` from `/public`.

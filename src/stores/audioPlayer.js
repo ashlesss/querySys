@@ -270,6 +270,44 @@ export const useAudioPlayerStore = defineStore('audioplayer', {
 
     SET_VIDEO_MODE(mode) {
       this.isVideoMode = mode
+    },
+
+    RESET_AUDIO_STORE() {
+      this.hide = false,
+      this.playing= false, // Play status (true/false)
+      this.currentTime= 0, // second
+      this.duration= 0,
+      this.source= "",
+      this.queue= [
+        // list of tracks. object format=
+        /*
+          hash: null, // unique identifier for the file
+          title: null, // title to show in UI
+          workTitle: null // workTitle to show in UI
+          subtitles: null // Current playable file's subtitles list
+        */
+      ],
+      this.queueIndex= 0, // which track in the queue is currently selected
+      this.playMode= {
+        id: 0,
+        name: "order"
+      }, // order, all repeat, repeat once, shuffle
+      this.muted= false,
+      this.volume= 0, // audio volume (0.0-1.0)
+      this.currentLyric= '',
+      this.sleepTime= null,
+      this.sleepMode= false,
+      this.rewindSeekTime= 5,
+      this.forwardSeekTime= 30,
+      this.rewindSeekMode= false,
+      this.forwardSeekMode= false,
+      this.currentSubtitleIndex= -1,
+      this.haveSubtitle= false,
+      this.userSetCurrentSubtitleIndex= -1,
+      this.pipEnable= false,
+      this.currentCMPLyrics= [],
+      this.currentLrcLineNumber= 0,
+      this.isVideoMode= false
     }
   },
 })

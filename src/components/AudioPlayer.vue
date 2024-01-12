@@ -578,11 +578,6 @@ export default {
         background: rgba(150, 122, 116, 0.8);
     }
 
-    .pull-handler:hover {
-            transition: 0.3s;
-            background: rgba(150, 122, 116, 0.8);
-    }
-
      // 增大可点击范围
     .pull-handler:before {
         content: "";

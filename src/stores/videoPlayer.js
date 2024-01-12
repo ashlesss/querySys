@@ -2,11 +2,12 @@ import { defineStore } from 'pinia'
 
 export const useVideoPlayerStore = defineStore('videoplayer', {
   state: () => ({
-    videoMode: false,
+    videoMode: 'card',
     playing: false,
     videoQueue: [],
-    currentVideoFile: null,
+    currentVideoFile: {},
     currentPlayingFileIndex: -1,
+    videoHide: false
   }),
   getters: {
     GET_VIDEO_QUEUE: (state) => {
@@ -71,5 +72,17 @@ export const useVideoPlayerStore = defineStore('videoplayer', {
   
         this.videoQueue = queue.concat()
     },
+
+    TOGGLE_VIDEO_HIDE() {
+      this.videoHide = !this.videoHide
+    },
+
+    RESET_VIDEO_STORE() {
+      this.playing = false
+      this.videoQueue = []
+      this.currentVideoFile = {}
+      this.currentPlayingFileIndex = -1
+      this.videoHide = false
+    }
   },
 })
