@@ -107,6 +107,7 @@ export default {
         },
 
         millisecondsToLRC(milliseconds) {
+            // let totalSeconds = (parseInt(milliseconds) + (this.subtitleOffset * 1000 * -1)) / 1000;
             let totalSeconds = parseInt(milliseconds) / 1000;
 
             let minutes = Math.floor(totalSeconds / 60);
