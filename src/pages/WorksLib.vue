@@ -29,6 +29,7 @@
     <div class="row justify-between q-mb-md q-mr-sm q-ml-md">
         <div class="col">
             <q-select 
+                dense
                 rounded 
                 outlined 
                 v-model="sortOption" 
@@ -127,59 +128,61 @@ export default {
             tempKeyword: '',
             isLoading: false,
             // keyword: '',
-            sortOption: this.$q.localStorage.getItem('sortOption') ? {
-                label: '按照发售日期新到老的顺序',
+            sortOption: this.$q.localStorage.getItem('sortOption') ? 
+            JSON.parse(this.$q.localStorage.getItem('sortOption')) : 
+            {
+                label: '发售日期新到老',
                 order: 'regist_date',
                 sort: 'desc'
-            } : JSON.parse(this.$q.localStorage.getItem('sortOption')),
+            } ,
             options: [
                 {
-                label: '按照发售日期新到老的顺序',
+                label: '发售日期新到老',
                 order: 'regist_date',
                 sort: 'desc'
                 },
                 {
-                label: '按照发售日期老到新的顺序',
+                label: '发售日期老到新',
                 order: 'regist_date',
                 sort: 'asc'
                 },
                 {
-                label: '按照售出数量多到少的顺序',
+                label: '售出数量多到少',
                 order: 'dl_count',
                 sort: 'desc'
                 },
                 {
-                label: '按照价格便宜到贵的顺序',
+                label: '价格低到高',
                 order: 'official_price',
                 sort: 'asc'
                 },
                 {
-                label: '按照价格贵到便宜的顺序',
+                label: '价格高到低',
                 order: 'official_price',
                 sort: 'desc'
                 },
                 {
-                label: '按照评价高到低的顺序',
+                label: '评价高到低',
                 order: 'rate_average_2dp',
                 sort: 'desc'
                 },
                 {
-                label: '按照评论多到少的顺序',
+                label: '评论多到少',
                 order: 'rate_count',
                 sort: 'desc'
                 },
                 {
-                label: '按照RJ号大到小的顺序',
+                label: 'RJ号大到小',
                 order: 'alt_rj_code',
                 sort: 'desc'
                 },
                 {
-                label: '按照RJ号小到大的顺序',
+                label: 'RJ号小到大',
                 order: 'alt_rj_code',
                 sort: 'asc'
                 },
                 {
-                label: '按照全年龄新作优先的顺序',
+                label: '全年龄新作优先',
                 order: 'nsfw',
                 sort: 'asc'
                 },

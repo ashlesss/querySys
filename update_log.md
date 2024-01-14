@@ -1,5 +1,9 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 1/13/2024
+
+1. Fix `sortOptions` logic error in `WorkLib` page.
+
 ## 1/12/2024
 
 1. Remove dedicated watch page using video card instead.
