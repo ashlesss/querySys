@@ -39,7 +39,8 @@ export default {
             options: {
                 controls: ['progress'],
                 iconUrl: '/plyr.svg'
-            }
+            },
+            hisotryMonitor: null
         }
     },
 
@@ -199,10 +200,12 @@ export default {
         onWaiting() {
             console.log('waiting and sub paused');
             this.lrcObj.pause();
+            this.hisotryMonitor = null
         },
 
         resetPlayer() {
             this.player.source = null
+            this.hisotryMonitor = null
             console.log('Player reloaded');
         },
         
@@ -217,6 +220,7 @@ export default {
                     console.log('lrc playing');
                 }
                 
+                this.onPlayMonitor()
             } 
         },
 
@@ -243,35 +247,34 @@ export default {
             // Trigger whtn media stop playing
             switch (this.playMode.name) {
                 case "all repeat":
-                // Repeat all
-                if (this.queueIndex === this.queue.length - 1) {
-                    this.SET_TRACK(0)
-                } else {
-                    this.NEXT_TRACK()
-                }
-                break
+                    // Repeat all
+                    if (this.queueIndex === this.queue.length - 1) {
+                        this.SET_TRACK(0)
+                    } else {
+                        this.NEXT_TRACK()
+                    }
+                    break
                 case "repeat once":
-                // Repeat one
-                this.player.currentTime = 0
-                this.player.play()
-                this.PLAY()
-                break
-                case "shuffle": {
-                // Shuffle
-                const index = Math.floor(Math.random()*this.queue.length)
-                this.SET_TRACK(index)
-                if (index === this.queueIndex) {
+                    // Repeat one
                     this.player.currentTime = 0
-                }
-                break
-                }
+                    this.player.play()
+                    this.PLAY()
+                    break
+                case "shuffle": 
+                    // Shuffle
+                    const index = Math.floor(Math.random()*this.queue.length)
+                    this.SET_TRACK(index)
+                    if (index === this.queueIndex) {
+                        this.player.currentTime = 0
+                    }
+                    break
                 default:
-                // Repeat
-                if (this.queueIndex === this.queue.length - 1) {
-                    this.PAUSE()
-                } else {
-                    this.NEXT_TRACK()
-                }
+                    // Repeat
+                    if (this.queueIndex === this.queue.length - 1) {
+                        this.PAUSE()
+                    } else {
+                        this.NEXT_TRACK()
+                    }
             }
         },
 
@@ -609,6 +612,46 @@ export default {
                 }
             })
         },
+
+        onPlayMonitor() {
+            this.hisotryMonitor = setInterval(() => {
+                if (this.playing && this.player.duration) {
+                    this.uploadHistory()
+                }
+            }, 3000)
+        },
+
+        uploadHistory() {
+            this.$axios.post(`/api/history/listening`, {
+                rjcode: this.currentPlayingFile.hash.split('/')[0],
+                filename: this.currentPlayingFile.title,
+                startAt: this.player.currentTime
+            })
+            .then(res => {
+                if (
+                    res.data.status === 'history_updated' 
+                    || res.data.status === 'history_created'
+                ) {
+                    console.log('history_updated/created');
+                }
+                else {
+                    console.clg(res.data);
+                }
+            })
+            .catch(err => {
+                if (err.response) {
+                    if (err.response.status === 422) {
+                        console.log(err.response.data);
+                    }
+                    else {
+                        console.error(err.response.data);
+                    }
+                }
+                else {
+                    console.error(err.message);
+                }
+            })
+        }
     },
 
     mounted() {

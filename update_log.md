@@ -1,5 +1,9 @@
 Built based on [kikoeru project](https://github.com/kikoeru-project)
 
+## 1/15/2024
+
+1. Add history playback api.
+
 ## 1/13/2024
 
 1. Fix `sortOptions` logic error in `WorkLib` page.
