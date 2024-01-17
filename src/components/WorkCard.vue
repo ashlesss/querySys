@@ -4,6 +4,7 @@
         :rjcode="work.rj_code" 
         :release="work.regist_date"
         :img="work.work_main_img"
+        name="card"
         class="fit"/>
 
       <q-separator />

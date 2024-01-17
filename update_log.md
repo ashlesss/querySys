@@ -3,6 +3,7 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 ## 1/17/2024
 
 1. Add enable/disable history playback switch when click tracks.
+2. Set up another `workImgCover` layout for `WorkDetailPage`.
 
 ## 1/16/2024
 

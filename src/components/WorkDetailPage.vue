@@ -1,11 +1,14 @@
 <template>
-    <WorkImgCover 
-        class="column justify-center items-center q-pa-lg"
-        :rjcode="workInfo.rj_code" 
-        :release="workInfo.regist_date"
-        :img="workInfo.work_main_img" 
-    />
+    
     <div class="column justify-center items-center q-pa-sm">
+
+        <WorkImgCover 
+            class="q-mb-lg"
+            :rjcode="workInfo.rj_code" 
+            :release="workInfo.regist_date"
+            :img="workInfo.work_main_img" 
+            name="detail"
+        />
 
         <div class="text-h6 text-weight-regular">
             {{ workInfo.work_title }}
