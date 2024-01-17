@@ -65,7 +65,7 @@
             </router-link>
         </div>
         <!-- VA -->
-        <div class="row">
+        <div class="row justify-center items-center">
             <router-link
                 v-show="workInfo.vas.vas[0].va_name"
                 v-for="(va, index) in workInfo.vas.vas"

@@ -20,7 +20,8 @@ export default {
             lastProcessedWindowSize: {
                 height: 0,
                 width: 0
-            }
+            },
+            resizePatchTimeoutID: null
         }
     },
     computed: {
@@ -88,20 +89,40 @@ export default {
         ]),
 
         onPipWindowResize() {
-            if (Math.abs(this.lastProcessedWindowSize.height - this.pipWindow.height) < 10 && Math.abs(this.lastProcessedWindowSize.width - this.pipWindow.width) < 10) {
+            if (
+                Math.abs(this.lastProcessedWindowSize.height - this.pipWindow.height) 
+                < 10 && Math.abs(this.lastProcessedWindowSize.width - this.pipWindow.width) < 10
+            ) {
                 // console.log(this.currentLyric);
-                this.setSubtitle(this.currentLyric)
-                this.video.srcObject.getTracks().forEach(t => t.requestFrame());
                 return;
             }
             this.lastProcessedWindowSize = {
                 height: this.pipWindow.height,
                 width: this.pipWindow.width
             };
-            this.canvas.width = Math.round(2 * this.pipWindow.width);
-            this.canvas.height = Math.round(2 * this.pipWindow.height);
-            this.setSubtitle(this.currentLyric)
-            this.video.srcObject.getTracks().forEach(t => t.requestFrame());
+
+            if (this.$q.platform.is.ios || this.$q.platform.is.mac) {
+                this.canvas.width = Math.round(this.pipWindow.width * 0.5)
+                this.canvas.height = Math.round(this.pipWindow.height * 0.5)
+                this.setSubtitle(this.currentLyric)
+                this.video.srcObject.getTracks().forEach(track => track.requestFrame())
+
+                if (this.resizePatchTimeoutID) { clearTimeout(this.resizePatchTimeoutID) }
+
+                this.resizePatchTimeoutID = setTimeout(() => {
+                this.canvas.width = Math.round(2 * this.pipWindow.width)
+                this.canvas.height = Math.round(2 * this.pipWindow.height)
+                this.setSubtitle(this.currentLyric)
+                this.video.srcObject.getTracks().forEach(track => track.requestFrame())
+                }, 500)
+            }
+            else {
+                this.canvas.width = Math.round(2 * this.pipWindow.width);
+                this.canvas.height = Math.round(2 * this.pipWindow.height);
+                this.setSubtitle(this.currentLyric)
+                this.video.srcObject.getTracks().forEach(t => t.requestFrame());
+            }
+            
         },
         show() {
             if (!this.currentPiPStatus) {

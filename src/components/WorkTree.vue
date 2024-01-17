@@ -41,6 +41,21 @@
                     <q-item-label lines="2" v-if="item.title">{{ item.title }}</q-item-label>
                     <q-item-label lines="2" v-else-if="item.folderDirName">{{ item.folderDirName }}</q-item-label>
                     <q-item-label v-if="item.children" caption lines="1">{{ `${item.children.length} Item(s)` }}</q-item-label>
+                    <q-item-label v-else-if="item.duration && item.type === 'audio'" caption lines="1">{{ `${this.formatSeconds(item.duration)}` }}</q-item-label>
+                </q-item-section>
+
+                <q-item-section side>
+                    <q-circular-progress
+                        show-value
+                        v-if="item.type === 'audio' && listenHistory.find(e => e.file_name === item.title)"
+                        :value="Math.floor(((listenHistory.find(e => e.file_name === item.title).start_at) / item.duration) * 100)"
+                        size="30px"
+                        :thickness="0.22"
+                        color="teal"
+                        track-color="grey-3"
+                    >
+                    {{ `${Math.floor(((listenHistory.find(e => e.file_name === item.title).start_at) / item.duration) * 100)}%` }}
+                    </q-circular-progress>
                 </q-item-section>
 
                 <q-menu
@@ -99,7 +114,9 @@ import { calSamePrc } from '../utils/subtitle'
 export default{
     name: 'WorkTree',
 
-    props: ['tree', 'goto'],
+    props: [
+        'tree', 'goto', 'listenHistory'
+    ],
 
     data() {
         return {
@@ -167,10 +184,12 @@ export default{
                     if (subtitles.length !== 0) {
                         const subWPrc = calSamePrc(subtitles, item)
                         item.subtitles = subWPrc
-                        queueLocal.push(item)
+                        this.getHistoryInfo(queueLocal, item)
+                        // queueLocal.push(item)
                     }
                     else {
-                        queueLocal.push(item)
+                        // queueLocal.push(item)
+                        this.getHistoryInfo(queueLocal, item)
                     }
                 }
             })
@@ -276,6 +295,22 @@ export default{
             'SET_CURRENT_PLAYING_VIDEO_FILE_INDEX',
             'RESET_VIDEO_STORE'
         ]),
+
+        getHistoryInfo(queueLocal, item) {
+            if (this.listenHistory.length) {
+                const history = this.listenHistory.find(e => e.file_name === item.title)
+                if (history) {
+                    item.start_at = history.start_at
+                    queueLocal.push(item)
+                }
+                else {
+                    queueLocal.push(item)
+                }
+            }
+            else {
+                queueLocal.push(item)
+            }
+        },
 
         getUserPlatform() {
             if (this.userAgent.includes('Win')) {
@@ -787,6 +822,24 @@ export default{
                     });
                 }
             }
+        },
+
+        formatSeconds (seconds) {
+            let h = Math.floor(seconds / 3600) < 10
+                ? '0' + Math.floor(seconds / 3600)
+                : Math.floor(seconds / 3600)
+
+            let m = Math.floor((seconds / 60 % 60)) < 10
+                ? '0' + Math.floor((seconds / 60 % 60))
+                : Math.floor((seconds / 60 % 60))
+
+            let s = Math.floor((seconds % 60)) < 10
+                ? '0' + Math.floor((seconds % 60))
+                : Math.floor((seconds % 60))
+
+            return h === "00"
+                ? m + ":" + s
+                : h + ":" + m + ":" + s
         },
     }
 }

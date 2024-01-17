@@ -7,6 +7,7 @@
             @ended="onEnded()"
             @seeked="onSeeked()"
             @waiting="onWaiting()"
+            @loadedmetadata="onLoadedmetadata()"
         >
             <audio crossorigin="anonymous">
                 <source
@@ -40,7 +41,8 @@ export default {
                 controls: ['progress'],
                 iconUrl: '/plyr.svg'
             },
-            hisotryMonitor: null
+            hisotryMonitor: null,
+            isCanPlay: false
         }
     },
 
@@ -104,6 +106,7 @@ export default {
         source(url) {
             if (url) {
                 // this.onSourceChange()
+                console.log('SOURCE CHANGED');
                 this.resetPlayer()
                 this.player.media.load();
                 this.loadLrcFile()
@@ -198,18 +201,20 @@ export default {
         ]),
 
         onWaiting() {
+            this.isCanPlay = false
             console.log('waiting and sub paused');
             this.lrcObj.pause();
-            this.hisotryMonitor = null
+            this.clearHistoryMonitor()
         },
 
         resetPlayer() {
             this.player.source = null
-            this.hisotryMonitor = null
+            this.clearHistoryMonitor()
             console.log('Player reloaded');
         },
         
         onCanPlay() {
+            this.isCanPlay = true
             this.SET_DURATION(this.player.duration)
 
             if (this.playing && this.player.currentTime !== this.player.duration) {
@@ -222,6 +227,14 @@ export default {
                 
                 this.onPlayMonitor()
             } 
+        },
+
+        onLoadedmetadata() {
+            console.log("metadata loaded");
+            if (this.currentPlayingFile.start_at) {
+                this.player.currentTime = this.currentPlayingFile.start_at
+            }
+            
         },
 
         timeUpdate() {
@@ -619,6 +632,14 @@ export default {
                     this.uploadHistory()
                 }
             }, 3000)
+        },
+
+        clearHistoryMonitor() {
+            if (this.hisotryMonitor) {
+                clearInterval(this.hisotryMonitor)
+                this.hisotryMonitor = null
+                console.log('History monitor is cleared');
+            }
         },
 
         uploadHistory() {

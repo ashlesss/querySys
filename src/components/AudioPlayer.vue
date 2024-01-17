@@ -66,7 +66,9 @@
 
                  <!-- 音量控件 -->
                 <!-- HTML5 volume in iOS is read-only -->
-                <div class="row items-center q-mx-lg q-pt-sm">
+                <div class="row items-center q-mx-lg q-pt-sm"
+                    v-show="!$q.platform.is.ios"
+                >
                     <q-icon name="volume_down" size="sm" class="col-auto" />
                     <q-slider
                         :disable="$q.platform.is.ios"
@@ -272,20 +274,6 @@ export default {
         OverflowScroll
     },
 
-    setup() {
-        const info = ref(null)
-
-        return {
-            info,
-            handleSwipe ({ evt, ...newInfo }) {
-                info.value = newInfo
-
-                // native Javascript event
-                console.log(evt)
-            }
-        }
-    },
-
     data() {
         return {
             showCurrentPlayList: false,
@@ -312,10 +300,6 @@ export default {
                 this.editCurrentPlayList = false
             }
         },
-
-        hide(evt) {
-            console.log(evt);
-        }
     },
 
     computed: {

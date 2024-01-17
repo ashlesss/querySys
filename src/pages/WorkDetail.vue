@@ -18,6 +18,7 @@
             @path_down="pathDown" 
             @path_up="pathUp" 
             :goto="goToPath"
+            :listenHistory="listenHistory"
         />
     </div>
 </template>
@@ -57,6 +58,7 @@ export default defineComponent({
             userCancel: false,
             isLoading: false,
             currWorkId: this.$route.params.id || '',
+            listenHistory: []
         }
     },
 
@@ -158,6 +160,19 @@ export default defineComponent({
                     this.showErrNotif(err.message || err)
                 }
             })
+
+            this.$axios.get(`/api/history/get/${this.$route.params.id}`)
+            .then(res => {
+                this.listenHistory = res.data
+            })
+            .catch(err => {
+                if (err.response) {
+                    this.showErrNotif(err.response.data.info || `${err.response.status} ${err.response.statusText}`)
+                }
+                else {
+                    this.showErrNotif(err.message || err)
+                }
+            })
         },
 
         pathDown(event) {
@@ -177,6 +192,13 @@ export default defineComponent({
             // const duration = 1000
             setVerticalScrollPosition(target, offset)
         },
+    },
+
+    beforeRouteEnter (to, from, next) {
+        window.fromWorkLibToWorkDetail = {
+            ...from
+        }
+        next()
     }
 })
 </script>

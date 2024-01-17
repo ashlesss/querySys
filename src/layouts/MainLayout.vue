@@ -21,6 +21,7 @@
 
         </q-toolbar>
         <AudioPlayer />
+        <PiPSubtitle />
         <VideoElement />
       </q-header>
 
@@ -137,7 +138,6 @@
 
       <DownloadCard />
       <!-- <AudioPlayer /> -->
-      <PiPSubtitle />
     <q-page-container>
       <!-- <router-view /> -->
       <!-- :key="this.$route.path" -->
@@ -179,12 +179,13 @@ import NotifyMixin from '../mixins/Notification.js'
 import { usePageControlStore } from '../stores/pageControl'
 import LyricsBar from '../components/LyricsBar.vue'
 import Search from '../mixins/Keywords'
+import Page from '../mixins/Page'
 
 
 export default defineComponent({
   name: 'MainLayout',
 
-  mixins: [NotifyMixin, Search],
+  mixins: [NotifyMixin, Search, Page],
 
   components: {
     DownloadCard,
@@ -291,10 +292,6 @@ export default defineComponent({
   },
 
   methods: {
-    ...mapActions(usePageControlStore, [
-      'SET_FIRST_RAND',
-      'SET_FIRST_RAND_RJ'
-    ]),
 
     toggleDark() {
       if (this.$q.dark.isActive == false && this.$q.dark.mode == false) {
@@ -308,25 +305,14 @@ export default defineComponent({
     },
 
     back() {
+      console.log(this.$route.name);
       const historyPathLen = history.length;
       if (historyPathLen <= 2) {
         this.$router.push(`/works`)
       }
-      else {
-        if (this.$route.query.path) {
-          if (this.$q.sessionStorage.getItem('searchKeyword')) {
-            this.$router.push(`/works?keyword=${encodeURIComponent(this.$q.sessionStorage
-              .getItem('searchKeyword'))}${this.currPageStore ? 
-              `&page=${this.currPageStore}` : ''}`)
-          }
-          else {
-            this.$router.push(`/works${this.currPageStore 
-              ? `?page=${this.currPageStore}` : ''}`)
-          }
-        }
-        else {
-          this.$router.go(-1)
-        }
+      else if ('fromWorkLibToWorkDetail' in window && this.$route.name === 'WorkDetail') {
+        this.$router.push(window.fromWorkLibToWorkDetail)
+        delete window.fromWorkLibToWorkDetail
       }
     },
 
@@ -388,18 +374,9 @@ export default defineComponent({
     },
 
     randomPlay() {
-      this.$axios.get('/api/query/ramdonPlay')
+      this.$axios.get('/api/query/randomPlay')
       .then(res => {
         const rjcode = res.data.rj_code
-        if (this.firstRandom) {
-          if (this.$route.params.id) {
-            this.SET_FIRST_RAND_RJ(this.$route.params.id)
-          }
-          // else {
-          //   this.SET_FIRST_RAND_RJ(rjcode)
-          // }
-        }
-        this.SET_FIRST_RAND(false)
         this.$router.push(`/work/${rjcode}`)
       })
       .catch(err => {
