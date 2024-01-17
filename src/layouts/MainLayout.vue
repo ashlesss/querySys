@@ -176,7 +176,6 @@ import AudioPlayer from '../components/AudioPlayer.vue'
 import PlayerBar from '../components/PlayerBar.vue'
 import { useUserAuthStore } from '../stores/userAuth'
 import NotifyMixin from '../mixins/Notification.js'
-import { usePageControlStore } from '../stores/pageControl'
 import LyricsBar from '../components/LyricsBar.vue'
 import Search from '../mixins/Keywords'
 import Page from '../mixins/Page'
@@ -269,12 +268,6 @@ export default defineComponent({
     ...mapState(useUserAuthStore, [
       'auth',
       'username'
-    ]),
-
-    ...mapState(usePageControlStore, [
-      'currPageStore',
-      'firstRandom',
-      'firstRandomRJ'
     ]),
 
     ...mapState(useVideoPlayerStore, [

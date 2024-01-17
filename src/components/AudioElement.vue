@@ -1,21 +1,40 @@
 <template>
-    <div>
-        <vue-plyr ref="plyr" 
-            :options="options"
-            @canplay="onCanPlay()"
-            @timeupdate="timeUpdate()"
-            @ended="onEnded()"
-            @seeked="onSeeked()"
-            @waiting="onWaiting()"
-            @loadedmetadata="onLoadedmetadata()"
+    <div class="column">
+        <div 
+            class="col-6 self-end"
+            v-show="this.currentPlayingFile.start_at"
         >
-            <audio crossorigin="anonymous">
-                <source
-                    v-if="source"
-                    :src="source"
-                />
-            </audio>
-        </vue-plyr>
+            <q-chip
+                outline 
+                clickable
+                size="10px"
+                color="primary" 
+                text-color="white" 
+                icon="restart_alt"
+                @click="forwardToHistory()"
+            >
+                Replay
+            </q-chip>
+        </div>
+        
+        <div class="col-6">
+            <vue-plyr ref="plyr" 
+                :options="options"
+                @canplay="onCanPlay()"
+                @timeupdate="timeUpdate()"
+                @ended="onEnded()"
+                @seeked="onSeeked()"
+                @waiting="onWaiting()"
+                @loadedmetadata="onLoadedmetadata()"
+            >
+                <audio crossorigin="anonymous">
+                    <source
+                        v-if="source"
+                        :src="source"
+                    />
+                </audio>
+            </vue-plyr>
+        </div>
     </div>
 </template>
 <script>
@@ -177,6 +196,11 @@ export default {
         userSetCurrentSubtitleIndex(index) {
             this.loadLrcFile(true, index)
         },
+
+        historyTime(second) {
+            console.log(second);
+            this.player.currentTime = second
+        }
     },
 
     methods: {
@@ -231,7 +255,7 @@ export default {
 
         onLoadedmetadata() {
             console.log("metadata loaded");
-            if (this.currentPlayingFile.start_at) {
+            if (this.$q.localStorage.getItem('historyPlayback') && this.currentPlayingFile.start_at) {
                 this.player.currentTime = this.currentPlayingFile.start_at
             }
             
@@ -672,6 +696,10 @@ export default {
                     console.error(err.message);
                 }
             })
+        },
+
+        forwardToHistory() {
+            this.player.currentTime = this.currentPlayingFile.start_at
         }
     },
 

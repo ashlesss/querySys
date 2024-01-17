@@ -47,12 +47,28 @@
                     </OverflowScroll>
                 </div>
 
+                <!-- 是否快进到历史播放位置 -->
+                <!-- <div class="column items-end" v-show="currentPlayingFile.start_at">
+                    <q-chip 
+                        outline 
+                        clickable
+                        size="10px"
+                        color="primary" 
+                        text-color="white" 
+                        icon="restart_alt"
+                        @click="forwardToHistory()"
+                    >
+                        Replay
+                    </q-chip>
+                </div> -->
+
                 <!-- 进度条控件 -->
                 <div class="row items-center q-mx-sm q-mb-sm non-selectable">
-                    <div class="col-auto relative-position">{{ formatSeconds(currentTime) }}</div>
-                    <AudioElement class="col" />
-                    <!-- <PiPSubtitle/> -->
-                    <div class="col-auto relative-position">{{ formatSeconds(duration) }}</div>
+                    <AudioElement class="col-12 q-pt-xs" />
+                    <div class="col-12 flex justify-between">
+                        <div class="col-auto relative-position">{{ formatSeconds(currentTime) }}</div>
+                        <div class="col-auto relative-position">{{ formatSeconds(duration) }}</div>
+                    </div>
                 </div>
 
                 <!-- 播放按钮控件 -->
@@ -416,7 +432,8 @@ export default {
             'SET_USER_SELECT_SUB_INDEX',
             'SET_PIP_ENABLE',
             'PAUSE',
-            'PLAY'
+            'PLAY',
+            'SET_HISTORY_TIME'
         ]),
 
         openWorkDetail () {
@@ -496,6 +513,10 @@ export default {
                 this.SET_PIP_ENABLE(true)
             }
         },
+
+        forwardToHistory() {
+            this.SET_HISTORY_TIME(this.currentPlayingFile.start_at)
+        }
     },
 }
 </script>

@@ -87,6 +87,14 @@
         </div>
 
     </div>
+
+    <div class="q-ml-md">
+        <q-btn color="primary" @click="changeHistoryPlayback()">
+            <q-icon v-if="historyPlayback" left name="check_box" />
+            <q-icon v-else left name="check_box_outline_blank"/>
+            <div>History playback</div>
+        </q-btn>
+    </div>
 </template>
 
 <script>
@@ -103,17 +111,37 @@ export default {
 
     data() {
         return {
-            rating: 0
+            rating: 0,
+            historyPlayback: this.$q.localStorage.getItem('historyPlayback') ? this.$q.localStorage.getItem('historyPlayback') : true
+        }
+    },
+
+    watch: {
+        historyPlayback(flag) {
+            this.$q.localStorage.set('historyPlayback', flag)
         }
     },
 
     mounted() {
       this.rating = this.workInfo.rate_average_2dp
+
+      if (this.$q.localStorage.getItem('historyPlayback') !== null) {
+        this.historyPlayback = this.$q.localStorage.getItem('historyPlayback')
+      }
+      else {
+        this.$q.localStorage.set('historyPlayback', true)
+      }
     },
 
     computed: {
         getImgUrl() {
             return `/api/static/img/${this.workInfo.work_main_img}`
+        }
+    },
+
+    methods: {
+        changeHistoryPlayback() {
+            this.historyPlayback = !this.historyPlayback
         }
     }
 }
