@@ -1,40 +1,20 @@
 <template>
-    <div class="column">
-        <div 
-            class="col-6 self-end"
-            v-show="this.currentPlayingFile.start_at"
+    <div>
+        <vue-plyr ref="plyr" 
+            :options="options"
+            @canplay="onCanPlay()"
+            @timeupdate="timeUpdate()"
+            @ended="onEnded()"
+            @seeked="onSeeked()"
+            @waiting="onWaiting()"
         >
-            <q-chip
-                outline 
-                clickable
-                size="10px"
-                color="primary" 
-                text-color="white" 
-                icon="restart_alt"
-                @click="forwardToHistory()"
-            >
-                Replay
-            </q-chip>
-        </div>
-        
-        <div class="col-6">
-            <vue-plyr ref="plyr" 
-                :options="options"
-                @canplay="onCanPlay()"
-                @timeupdate="timeUpdate()"
-                @ended="onEnded()"
-                @seeked="onSeeked()"
-                @waiting="onWaiting()"
-                @loadedmetadata="onLoadedmetadata()"
-            >
-                <audio crossorigin="anonymous">
-                    <source
-                        v-if="source"
-                        :src="source"
-                    />
-                </audio>
-            </vue-plyr>
-        </div>
+            <audio crossorigin="anonymous">
+                <source
+                    v-if="source"
+                    :src="source"
+                />
+            </audio>
+        </vue-plyr>
     </div>
 </template>
 <script>
@@ -196,11 +176,6 @@ export default {
         userSetCurrentSubtitleIndex(index) {
             this.loadLrcFile(true, index)
         },
-
-        historyTime(second) {
-            console.log(second);
-            this.player.currentTime = second
-        }
     },
 
     methods: {
@@ -228,12 +203,10 @@ export default {
             this.isCanPlay = false
             console.log('waiting and sub paused');
             this.lrcObj.pause();
-            this.clearHistoryMonitor()
         },
 
         resetPlayer() {
             this.player.source = null
-            this.clearHistoryMonitor()
             console.log('Player reloaded');
         },
         
@@ -249,16 +222,7 @@ export default {
                     console.log('lrc playing');
                 }
                 
-                this.onPlayMonitor()
             } 
-        },
-
-        onLoadedmetadata() {
-            console.log("metadata loaded");
-            if (this.$q.localStorage.getItem('historyPlayback') && this.currentPlayingFile.start_at) {
-                this.player.currentTime = this.currentPlayingFile.start_at
-            }
-            
         },
 
         timeUpdate() {
@@ -649,58 +613,6 @@ export default {
                 }
             })
         },
-
-        onPlayMonitor() {
-            this.hisotryMonitor = setInterval(() => {
-                if (this.playing && this.player.duration) {
-                    this.uploadHistory()
-                }
-            }, 3000)
-        },
-
-        clearHistoryMonitor() {
-            if (this.hisotryMonitor) {
-                clearInterval(this.hisotryMonitor)
-                this.hisotryMonitor = null
-                console.log('History monitor is cleared');
-            }
-        },
-
-        uploadHistory() {
-            this.$axios.post(`/api/history/listening`, {
-                rjcode: this.currentPlayingFile.hash.split('/')[0],
-                filename: this.currentPlayingFile.title,
-                startAt: this.player.currentTime
-            })
-            .then(res => {
-                if (
-                    res.data.status === 'history_updated' 
-                    || res.data.status === 'history_created'
-                ) {
-                    console.log('history_updated/created');
-                }
-                else {
-                    console.clg(res.data);
-                }
-            })
-            .catch(err => {
-                if (err.response) {
-                    if (err.response.status === 422) {
-                        console.log(err.response.data);
-                    }
-                    else {
-                        console.error(err.response.data);
-                    }
-                }
-                else {
-                    console.error(err.message);
-                }
-            })
-        },
-
-        forwardToHistory() {
-            this.player.currentTime = this.currentPlayingFile.start_at
-        }
     },
 
     mounted() {

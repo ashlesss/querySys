@@ -2,14 +2,14 @@ Built based on [kikoeru project](https://github.com/kikoeru-project)
 
 ## 1/17/2024
 
-1. Add enable/disable history playback switch when click tracks.
+1. ~~Add enable/disable history playback switch when click tracks.~~
 2. Set up another `workImgCover` layout for `WorkDetailPage`.
 
 ## 1/16/2024
 
-1. Fix listen history monitor won't cleared.
-2. Showing audio duration on work tree.
-3. Support history playback when track has historical listening record.
+1. ~~Fix listen history monitor won't cleared.~~
+2. ~~Showing audio duration on work tree.~~
+3. ~~Support history playback when track has historical listening record.~~
 4. Fix PiP.
 
 ## 1/15/2024

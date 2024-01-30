@@ -18,7 +18,6 @@
             @path_down="pathDown" 
             @path_up="pathUp" 
             :goto="goToPath"
-            :listenHistory="listenHistory"
         />
     </div>
 </template>
@@ -57,8 +56,7 @@ export default defineComponent({
             isReset: true,
             userCancel: false,
             isLoading: false,
-            currWorkId: this.$route.params.id || '',
-            listenHistory: []
+            currWorkId: this.$route.params.id || ''
         }
     },
 
@@ -155,19 +153,6 @@ export default defineComponent({
             .catch(err => {
                 if (err.response) {
                     this.showErrNotif(err.response.data.error || `${err.response.status} ${err.response.statusText}`)
-                }
-                else {
-                    this.showErrNotif(err.message || err)
-                }
-            })
-
-            this.$axios.get(`/api/history/get/${this.$route.params.id}`)
-            .then(res => {
-                this.listenHistory = res.data
-            })
-            .catch(err => {
-                if (err.response) {
-                    this.showErrNotif(err.response.data.info || `${err.response.status} ${err.response.statusText}`)
                 }
                 else {
                     this.showErrNotif(err.message || err)
